@@ -17,6 +17,7 @@ You / Gateway  →  Hermes  →  HCX :8765  →  Cursor cloud models
 | `hermes/` | **Local only** — Hermes upstream clone (gitignored; created by `./scripts/setup.sh`) |
 | [`adapter/`](adapter/) | **HCX** FastAPI adapter (`hcx` package) |
 | [`voice/`](voice/) | Hold-to-talk sidecar (STT/TTS + Hermes bridge) on `:8767` |
+| [`vpl/`](vpl/) | Voice Presentation Layer (`hcx-vpl`) — layered spoken delivery, zero extra LLM |
 | [`hermes-plugin/model-providers/hcx/`](hermes-plugin/model-providers/hcx/) | Declarative Hermes provider |
 | [`config/upstream.lock.yaml`](config/upstream.lock.yaml) | Recommended Hermes git pin |
 | [`config/hermesxcursor.yaml.example`](config/hermesxcursor.yaml.example) | Adapter config |
@@ -79,14 +80,18 @@ Future backends implement `InferenceBackend` (`adapter/src/hcx/core/backend.py`)
 
 Browser push-to-talk on `127.0.0.1:8767` — press and hold to speak, release to send. Uses local **faster-whisper** (STT) + **Kokoro** (TTS), then `hermes chat -q` via HCX. Does not replace Hermes CLI `/voice` (Ctrl+B); this is the web / VPS-friendly path.
 
+**Layered delivery (VPL):** Long Hermes replies are parsed extractively by [`vpl/`](vpl/) (`hcx-vpl`). The full markdown answer stays on screen unchanged; TTS speaks orient → map → deepen layers using verbatim source spans. Navigation turns (`second`, bucket names, `read all`, etc.) reuse the stored session and **do not call Hermes again**. Short answers pass through unchanged.
+
 ```bash
 # Adapter must already be up
 ./scripts/start-adapter.sh
 
-./scripts/setup-voice.sh
+./scripts/setup-voice.sh   # installs vpl + voice editable
 ./scripts/start-voice.sh
 # open http://127.0.0.1:8767/
 ```
+
+Optional VPL env vars (see `.env.example`): `HCX_VPL_ENABLED`, `HCX_VPL_LAYER_THRESHOLD_ITEMS`, `HCX_VPL_MAX_BUCKETS`, `HCX_VPL_PASSTHROUGH_MAX_WORDS`, `HCX_VPL_SESSION_TTL_SEC`.
 
 Requires `ffmpeg` (and often `espeak-ng` for Kokoro). First run downloads Whisper + Kokoro weights. On a VPS, keep the sidecar on loopback and tunnel:
 
@@ -120,7 +125,10 @@ Hermes runtime data (skills, memory, config) stays in `~/.hermes` — separate f
 ```bash
 cd adapter && source .venv/bin/activate && pytest -q
 
-# Voice (mocked STT/TTS; no model download)
+# VPL (no ML deps)
+cd ../vpl && pip install -e '.[dev]' && pytest -q
+
+# Voice (mocked STT/TTS; no model download — install vpl first)
 cd ../voice && source ../.venvs/voice/bin/activate && pytest -q
 ```
 
@@ -140,7 +148,9 @@ cd ../voice && source ../.venvs/voice/bin/activate && pytest -q
 
 ## For maintainers
 
-`hermes/`, `.venvs/`, `.env`, `config/hermesxcursor.yaml`, and `zzz-docs/` are gitignored. After `./scripts/setup.sh`, **`git add .` is safe** — Hermes source is never committed.
+**Agents:** start at [`AGENTS.md`](AGENTS.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md). Deploy flow: [`PRE-COMMIT-CHECKLIST.md`](PRE-COMMIT-CHECKLIST.md).
+
+`hermes/`, `.venvs/`, `.env`, `config/hermesxcursor.yaml`, `zzz-docs/`, and `private/` are gitignored. After `./scripts/setup.sh`, **`git add .` is safe** — Hermes source is never committed.
 
 Before your first push, verify nothing sensitive is staged:
 

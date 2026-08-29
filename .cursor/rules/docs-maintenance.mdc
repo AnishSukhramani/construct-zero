@@ -1,0 +1,21 @@
+---
+description: Keep docs in sync after material code changes
+alwaysApply: true
+---
+
+# Documentation maintenance
+
+After **materially** changing a subsystem:
+
+1. Update the relevant doc in `docs/features/` (or `docs/architecture/` if cross-cutting).
+2. Update [docs/features/index.md](../docs/features/index.md) if status or scope changed.
+3. Update [ARCHITECTURE.md](../ARCHITECTURE.md) only if system map or ports changed.
+4. Update nested `AGENTS.md` only if routing or invariants for that directory changed.
+5. Keep root [AGENTS.md](../AGENTS.md) as a **table of contents** — add detail to `docs/`, not AGENTS.md.
+
+## Rules
+
+- Document behavior verified in code only — no speculative features.
+- Do not copy gitignored `zzz-docs/` verbatim into committed docs; distill instead.
+- New architectural **why** → add ADR under `docs/decisions/`.
+- See also [docs/references/coding-style.md](../docs/references/coding-style.md) and `00-governance.mdc`.
