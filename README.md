@@ -32,8 +32,8 @@ You / Gateway  →  Hermes  →  HCX :8765  →  Cursor cloud models
 ## Quick start
 
 ```bash
-git clone https://github.com/<you>/hermesXcursor.git
-cd hermesXcursor
+git clone https://github.com/AnishSukhramani/construct-zero.git
+cd construct-zero
 
 # Cursor API key — copy .env.example or export in shell
 cp .env.example .env   # edit CURSOR_API_KEY
