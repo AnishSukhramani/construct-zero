@@ -26,7 +26,7 @@ RESTART_DELAY="${HCX_VOICE_RESTART_DELAY:-2}"
 if [[ -f "$PID_FILE" ]]; then
   old="$(cat "$PID_FILE" || true)"
   if [[ -n "$old" ]] && kill -0 "$old" 2>/dev/null; then
-    echo "Stopping existing voice sidecar pid=$old"
+    echo "Stopping existing voice supervisor pid=$old"
     kill "$old" 2>/dev/null || true
     sleep 0.5
   fi
@@ -41,7 +41,6 @@ echo "Starting HCX voice on ${HOST}:${PORT} (log: $LOG_FILE)"
     echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) starting hcx-voice (restart=$restarts)" >>"$LOG_FILE"
     "$VENV/bin/python" -m hcx_voice --host "$HOST" --port "$PORT" >>"$LOG_FILE" 2>&1 &
     child=$!
-    echo "$child" >"$PID_FILE"
     wait "$child" || true
     code=$?
     echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) hcx-voice exited code=$code" >>"$LOG_FILE"
@@ -51,7 +50,9 @@ echo "Starting HCX voice on ${HOST}:${PORT} (log: $LOG_FILE)"
   echo "HCX voice exceeded max restarts ($MAX_RESTARTS)" >>"$LOG_FILE"
 ) &
 
-disown || true
+supervisor_pid=$!
+echo "$supervisor_pid" >"$PID_FILE"
+disown "$supervisor_pid" 2>/dev/null || true
 sleep 0.8
-echo "Voice supervisor started. PID file: $PID_FILE"
+echo "Voice supervisor started (pid=$supervisor_pid). PID file: $PID_FILE"
 echo "Open http://${HOST}:${PORT}/  (curl -s http://${HOST}:${PORT}/health)"

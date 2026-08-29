@@ -30,3 +30,6 @@ config/hermesxcursor.yaml
 
 # Local research scratchpad (not shipped)
 zzz-docs/
+
+# Local private workspace (never ship)
+private/

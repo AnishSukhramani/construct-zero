@@ -132,6 +132,37 @@ h1 {
   word-break: break-word;
 }
 
+.nav-hint {
+  margin: 0 0 0.75rem;
+  min-height: 1.2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.buckets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.bucket-chip {
+  border: 1px solid rgba(61, 156, 240, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--fg);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.bucket-chip:hover {
+  border-color: var(--accent);
+  background: rgba(61, 156, 240, 0.12);
+}
+
 .player {
   width: 100%;
   margin-top: 1.25rem;
