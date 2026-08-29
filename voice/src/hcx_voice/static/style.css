@@ -1,0 +1,138 @@
+:root {
+  --bg0: #0f1419;
+  --bg1: #1a2332;
+  --fg: #e8eef6;
+  --muted: #8b9bb0;
+  --accent: #3d9cf0;
+  --accent-hot: #e85d4c;
+  --ok: #3ecf8e;
+  --err: #f07178;
+  --font: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font);
+  color: var(--fg);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, #1e3a5f 0%, transparent 55%),
+    linear-gradient(165deg, var(--bg0), var(--bg1));
+}
+
+.wrap {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 3rem;
+  text-align: center;
+}
+
+.brand {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1 {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.sub {
+  margin: 0 0 1.75rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.status {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.status.recording {
+  color: var(--accent-hot);
+}
+
+.status.thinking {
+  color: var(--accent);
+}
+
+.status.speaking {
+  color: var(--ok);
+}
+
+.status.error {
+  color: var(--err);
+}
+
+.ptt {
+  width: min(72vw, 14rem);
+  height: min(72vw, 14rem);
+  border-radius: 50%;
+  border: 3px solid rgba(61, 156, 240, 0.45);
+  background: radial-gradient(circle at 40% 35%, #2a4a6e, #152033);
+  color: var(--fg);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.ptt:hover {
+  border-color: var(--accent);
+}
+
+.ptt:active,
+.ptt[aria-pressed="true"] {
+  transform: scale(0.96);
+  border-color: var(--accent-hot);
+  box-shadow: 0 0 0 8px rgba(232, 93, 76, 0.2), 0 8px 28px rgba(0, 0, 0, 0.4);
+  background: radial-gradient(circle at 40% 35%, #5a3040, #1a1520);
+}
+
+.transcripts {
+  margin-top: 2rem;
+  text-align: left;
+  display: grid;
+  gap: 1rem;
+}
+
+.transcripts h2 {
+  margin: 0 0 0.25rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.transcripts p {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.player {
+  width: 100%;
+  margin-top: 1.25rem;
+}

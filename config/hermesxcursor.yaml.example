@@ -1,0 +1,21 @@
+adapter:
+  host: 127.0.0.1
+  port: 8765
+  # Optional bearer for /v1/* (leave empty for open loopback)
+  api_key: ""
+
+inference:
+  backend: cursor
+  model: auto
+  cursor:
+    api_key_env: CURSOR_API_KEY
+    # ask = inference only; Hermes owns tools. Never use agent.
+    mode: ask
+    workspace_isolation: true
+  # Future: claude_code driver (stub only in MVP)
+  claude_code:
+    enabled: false
+
+# Optional: cheaper Cursor model for Hermes auxiliary tasks
+# (set in ~/.hermes/config.yaml auxiliary.*.model after HCX works)
+# auxiliary_model: composer-2.5

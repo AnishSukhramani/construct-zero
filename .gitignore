@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.venvs/
+adapter/.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+
+# Upstream Hermes — local clone only (created by scripts/setup.sh)
+hermes/
+
+# Local config / secrets
+config/hermesxcursor.yaml
+.env
+.env.*
+!.env.example
+
+# OS / IDE
+.DS_Store
+*.swp
+.claude/
+
+# Adapter / voice runtime
+*.log
+
+# Local research scratchpad (not shipped)
+zzz-docs/

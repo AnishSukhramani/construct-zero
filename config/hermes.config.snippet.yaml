@@ -1,0 +1,5 @@
+# Drop into ~/.hermes/config.yaml (merge with your existing config)
+model:
+  provider: hcx
+  default: auto
+  base_url: http://127.0.0.1:8765/v1

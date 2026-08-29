@@ -1,0 +1,6 @@
+# Pin for scripts/ensure-hermes.sh → clones into gitignored hermes/
+# Bump ref when validating a new Hermes release; commit this file only (not hermes/ source).
+
+hermes:
+  repo: https://github.com/NousResearch/hermes-agent.git
+  ref: 2ea42a44e02d21e5fdf7396537dca0e5af910100
