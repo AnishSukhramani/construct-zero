@@ -51,11 +51,13 @@ Without `install.sh` (clone + `./construct-zero init`), adapter/Hermes still def
 ## Daily commands after init
 
 ```bash
-./construct-zero help
+./construct-zero chat               # talk to Hermes (not a global "hermes" command)
 ./construct-zero start              # adapter; add --voice for the sidecar
-./construct-zero doctor
-./construct-zero chat -q "hello"    # Hermes + --provider construct-zero (--model auto if omitted)
+./construct-zero doctor             # check that it is working
+./construct-zero help               # reprints this menu
 ```
+
+`init` is not on the help menu (it already ran during install). Re-run with `./construct-zero init` if you need to.
 
 Equivalents: `scripts/start.sh`, `scripts/doctor.sh`, `scripts/init.sh`.
 
@@ -68,13 +70,14 @@ Repo-root [`construct-zero`](../../construct-zero) is not installed on PATH. It 
 | `./construct-zero start` | [`scripts/start.sh`](../../scripts/start.sh) |
 | `./construct-zero start --voice` | Adapter plus voice sidecar |
 | `./construct-zero doctor` | [`scripts/doctor.sh`](../../scripts/doctor.sh) |
-| `./construct-zero init` | [`scripts/init.sh`](../../scripts/init.sh) |
-| `./construct-zero chat …` | `.venvs/hermes/bin/hermes chat` with `--provider construct-zero`; `--model auto` if `--model` omitted |
-| `./construct-zero help` | Banner + command menu (also ` --help`, `-h`, `/help`, or no args) |
+| `./construct-zero chat` | Opens Hermes in this folder (`--provider construct-zero`; `--model auto` if omitted) |
+| `./construct-zero help` | Banner + what-to-do menu (also `--help`, `-h`, `/help`, or no args) |
+
+`./construct-zero init` still runs onboarding but is omitted from the help menu.
 
 Unknown subcommands print help on stderr and exit 1. `start` / `doctor` / `chat` do not print the banner.
 
-Help UI: FIGlet-style wordmark plus the command table. Uses [gum](https://github.com/charmbracelet/gum) `style` when gum is installed and stdout is a TTY; otherwise the same text without a border.
+Help UI: [`scripts/lib/help_ui.py`](../../scripts/lib/help_ui.py) renders a pyfiglet wordmark plus sapphire copy via Rich (shine sweep on the banner only). Fallback is the same text without color/animation if those packages are missing. Gum is not used for help.
 
 ## Manual path preserved
 
@@ -86,7 +89,7 @@ All legacy scripts work unchanged:
 
 ## Prompts
 
-Y/N and API-key prompts read from `/dev/tty` so they work under `curl | bash`. Each line shows **Press Enter to skip** (empty Enter applies the Y/N default, or leaves the API key unset / unchanged). `--auto` / `CZ_AUTO=1` skips prompts. [gum](https://github.com/charmbracelet/gum) is optional (colored logs, spinners, help panel) — not used for Y/N, so the skip hint stays visible.
+Y/N and API-key prompts read from `/dev/tty` so they work under `curl | bash`. Each line shows **Press Enter to skip** (empty Enter applies the Y/N default, or leaves the API key unset / unchanged). `--auto` / `CZ_AUTO=1` skips prompts. [gum](https://github.com/charmbracelet/gum) is optional (colored logs and spinners) — not used for Y/N, so the skip hint stays visible.
 
 ## Internal sandbox (not shipped)
 

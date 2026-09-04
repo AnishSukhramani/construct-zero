@@ -38,13 +38,8 @@ cat <<EOF
 
 Voice setup complete.
 
-1. Ensure Construct-Zero adapter is running:  ./scripts/start-adapter.sh
-2. Export CURSOR_API_KEY (and CZ_API_KEY=unused if Hermes requires it)
-3. Start voice:  ./scripts/start-voice.sh
-4. Open:         http://127.0.0.1:8767/
-
-Layered delivery (VPL): long Hermes replies are spoken in orient/map/deepen layers.
-Full reply stays on screen; navigation turns skip Hermes. See vpl/README.md.
+  ./construct-zero start --voice
+  Then open the URL that is printed (voice page).
 
 First STT/TTS call downloads models (Whisper + Kokoro/HF). Disk + network needed.
 Optional: CZ_VOICE_PRELOAD=1 to load models at startup.

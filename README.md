@@ -61,11 +61,11 @@ After init, daily use (`./construct-zero help` reprints the menu):
 
 ```bash
 ./construct-zero start              # adapter (+ --voice if set up)
+./construct-zero chat               # talk to Hermes (not a global "hermes" command)
 ./construct-zero doctor
-./construct-zero chat -q "Reply PONG"
 ```
 
-`scripts/start.sh`, `scripts/doctor.sh`, and `scripts/init.sh` still work. `chat` runs Hermes with `--provider construct-zero` and `--model auto` if you omit `--model`.
+`scripts/start.sh`, `scripts/doctor.sh`, and `scripts/init.sh` still work. `chat` runs the local Hermes CLI with `--provider construct-zero` and `--model auto` if you omit `--model`.
 
 Hermes config for a cwd install lives in `.hermes/config.yaml` inside that folder (`base_url` uses the port written to `.env`). Global default remains `~/.hermes/config.yaml` when you run `./construct-zero init` without `install.sh`:
 

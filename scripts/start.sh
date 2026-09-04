@@ -39,3 +39,20 @@ cz_load_env
 if [[ "$DO_VOICE" == "1" ]]; then
   "$ROOT/scripts/start-voice.sh"
 fi
+
+_host="${CZ_HOST:-${HCX_HOST:-127.0.0.1}}"
+_port="${CZ_PORT:-${HCX_PORT:-8765}}"
+_voice_host="${CZ_VOICE_HOST:-${HCX_VOICE_HOST:-127.0.0.1}}"
+_voice_port="${CZ_VOICE_PORT:-${HCX_VOICE_PORT:-8767}}"
+
+echo
+echo "Adapter is running on ${_host}:${_port}"
+if [[ "$DO_VOICE" == "1" ]]; then
+  echo "Voice UI: http://${_voice_host}:${_voice_port}/"
+fi
+echo
+echo "Next — talk to Hermes:"
+echo "  ./construct-zero chat"
+echo
+echo 'hermes is not on PATH; use the command above.'
+

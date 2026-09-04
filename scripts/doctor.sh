@@ -83,4 +83,4 @@ fi
 echo
 echo "Doctor OK."
 echo "Hermes smoke (if hermes installed):"
-echo "  ./construct-zero chat -q 'Reply PONG'"
+echo "  ./construct-zero chat"

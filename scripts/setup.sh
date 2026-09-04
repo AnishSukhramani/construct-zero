@@ -52,7 +52,7 @@ fi
 if [[ ! -d .venv ]]; then
   cz_venv_create .venv
 fi
-cz_pip_editable .venv/bin/python ".[dev]"
+cz_pip_editable .venv/bin/python ".[dev,cli]"
 cd "$ROOT"
 
 echo "==> Hermes CLI venv (for chat + voice bridge)"
@@ -110,11 +110,8 @@ cat <<EOF
 
 Setup complete.
 
-1. Copy .env.example → .env or export CURSOR_API_KEY (https://cursor.com/dashboard/api)
-2. Start adapter:  $ROOT/scripts/start-adapter.sh
-3. Doctor:         $ROOT/scripts/doctor.sh
-4. Hermes chat:    $ROOT/.venvs/hermes/bin/hermes chat --provider construct-zero --model auto
-
-Hermes upstream lives in hermes/ (gitignored). Pin: config/upstream.lock.yaml
+  ./construct-zero start    # adapter (add --voice for the voice page)
+  ./construct-zero chat     # talk to Hermes (not a global "hermes" command)
+  ./construct-zero help     # command menu
 
 EOF
