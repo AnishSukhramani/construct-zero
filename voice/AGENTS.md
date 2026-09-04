@@ -6,18 +6,18 @@ FastAPI on `127.0.0.1:8767`. STT + Hermes bridge + VPL + TTS.
 
 - Browser hold-to-talk UI (`static/`)
 - `/turn` orchestration — not Hermes internals
-- Depends on **hcx-vpl** ([vpl/](../vpl/)) for layered speech
+- Depends on **construct-zero-vpl** ([vpl/](../vpl/)) for layered speech
 - Depends on adapter `:8765` + Hermes CLI for brain calls
 
 ## Key files
 
 | File | Role |
 |------|------|
-| `src/hcx_voice/server.py` | Endpoints, VPL wiring |
-| `src/hcx_voice/hermes_bridge.py` | `hermes chat -q` subprocess |
-| `src/hcx_voice/session_store.py` | VPL session TTL |
-| `src/hcx_voice/stt_whisper.py` | STT |
-| `src/hcx_voice/tts_kokoro.py` | TTS |
+| `src/construct_zero_voice/server.py` | Endpoints, VPL wiring |
+| `src/construct_zero_voice/hermes_bridge.py` | `hermes chat -q` subprocess |
+| `src/construct_zero_voice/session_store.py` | VPL session TTL |
+| `src/construct_zero_voice/stt_whisper.py` | STT |
+| `src/construct_zero_voice/tts_kokoro.py` | TTS |
 
 ## Deep dives
 

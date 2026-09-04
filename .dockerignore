@@ -1,0 +1,28 @@
+# Docker build context exclusions (sandbox image via private/docker-compose.sandbox.yml).
+# Keeps local clones, venvs, secrets, and scratch out of the image.
+
+hermes/
+.hermes/
+.construct-zero/
+.venvs/
+**/.venv/
+.env
+.env.*
+!.env.example
+config/construct-zero.yaml
+config/hermesxcursor.yaml
+private/
+.git/
+.cursor/
+.claude/
+zzz-docs/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+.DS_Store
+*.log
+node_modules/

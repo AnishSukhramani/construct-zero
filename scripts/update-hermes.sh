@@ -32,8 +32,8 @@ fi
 
 "$ROOT/scripts/install-hermes-plugin.sh"
 
-HOST="${HCX_HOST:-127.0.0.1}"
-PORT="${HCX_PORT:-8765}"
+HOST="${CZ_HOST:-${HCX_HOST:-127.0.0.1}}"
+PORT="${CZ_PORT:-${HCX_PORT:-8765}}"
 if curl -fsS "http://${HOST}:${PORT}/health" >/dev/null 2>&1; then
   "$ROOT/scripts/doctor.sh" || true
 else

@@ -84,7 +84,7 @@ After push, open the repo on GitHub and confirm no `hermes/`, `.env`, or `privat
 ## Full copy-paste flow
 
 ```bash
-cd /path/to/hermesXcursor
+cd /path/to/construct-zero
 
 ./private/scripts/run-tests.sh --fast
 
@@ -107,7 +107,7 @@ git push
 | `.venvs/`, `adapter/.venv/` | Python envs |
 | `private/` | Local test harness |
 | `zzz-docs/` | Private research |
-| `config/hermesxcursor.yaml` | Local adapter config |
+| `config/construct-zero.yaml` | Local adapter config |
 
 ---
 

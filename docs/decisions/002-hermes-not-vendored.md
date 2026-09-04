@@ -15,5 +15,5 @@ Hermes Agent is a large upstream project with its own license and release cadenc
 ## Consequences
 
 - Agents never commit `hermes/` paths.
-- `./scripts/update-hermes.sh` updates local clone independently of HCX git history.
+- `./scripts/update-hermes.sh` updates local clone independently of Construct-Zero git history.
 - Hermes runtime data stays in `~/.hermes/`, not in `hermes/` clone path for config.

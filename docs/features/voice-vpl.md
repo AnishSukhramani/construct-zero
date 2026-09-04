@@ -17,28 +17,30 @@ Hermes returns chat-optimized Markdown (often long numbered lists). Reading it a
 ## Public API
 
 ```python
-from hcx_vpl import PresentationEngine, VplConfig
+from construct_zero_vpl import PresentationEngine, VplConfig
 
 engine = PresentationEngine(VplConfig.from_env())
 session, turn = engine.begin(full_markdown_text)
 session, nav = engine.step(session, "second")
 ```
 
-Modules: [parser.py](../../vpl/src/hcx_vpl/parser.py), [planner.py](../../vpl/src/hcx_vpl/planner.py), [renderer.py](../../vpl/src/hcx_vpl/renderer.py), [engine.py](../../vpl/src/hcx_vpl/engine.py), [intents.py](../../vpl/src/hcx_vpl/intents.py).
+Modules: [parser.py](../../vpl/src/construct_zero_vpl/parser.py), [planner.py](../../vpl/src/construct_zero_vpl/planner.py), [renderer.py](../../vpl/src/construct_zero_vpl/renderer.py), [engine.py](../../vpl/src/construct_zero_vpl/engine.py), [intents.py](../../vpl/src/construct_zero_vpl/intents.py).
 
 ## Configuration
 
 | Env var | Default | Purpose |
 |---------|---------|---------|
-| `HCX_VPL_ENABLED` | `1` | Toggle layered delivery |
-| `HCX_VPL_LAYER_THRESHOLD_ITEMS` | `5` | Min numbered items to layer |
-| `HCX_VPL_MAX_BUCKETS` | `4` | Spoken bucket cap |
-| `HCX_VPL_PASSTHROUGH_MAX_WORDS` | `400` | Short answers: speak all |
-| `HCX_VPL_SESSION_TTL_SEC` | `1800` | Session expiry |
+| `CZ_VPL_ENABLED` | `1` | Toggle layered delivery |
+| `CZ_VPL_LAYER_THRESHOLD_ITEMS` | `5` | Min numbered items to layer |
+| `CZ_VPL_MAX_BUCKETS` | `4` | Spoken bucket cap |
+| `CZ_VPL_PASSTHROUGH_MAX_WORDS` | `400` | Short answers: speak all |
+| `CZ_VPL_SESSION_TTL_SEC` | `1800` | Session expiry |
+
+`HCX_VPL_*` names are still read if the matching `CZ_VPL_*` var is unset.
 
 ## Integration
 
-- Wired in [voice/src/hcx_voice/server.py](../../voice/src/hcx_voice/server.py)
+- Wired in [voice/src/construct_zero_voice/server.py](../../voice/src/construct_zero_voice/server.py)
 - VPL does **not** call Hermes or Cursor — voice sidecar owns backend calls
 
 ## Tests

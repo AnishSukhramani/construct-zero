@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-# Health + models + optional chat smoke test for HCX.
+# Health + models + optional chat smoke test for Construct-Zero.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-HOST="${HCX_HOST:-127.0.0.1}"
-PORT="${HCX_PORT:-8765}"
+export CZ_ROOT="$ROOT"
+# shellcheck source=lib/common.sh
+source "$ROOT/scripts/lib/common.sh"
+cz_load_env
+
+HOST="${CZ_HOST:-${HCX_HOST:-127.0.0.1}}"
+PORT="${CZ_PORT:-${HCX_PORT:-8765}}"
 BASE="http://${HOST}:${PORT}"
 HERMES_DIR="$ROOT/hermes"
 LOCK="$ROOT/config/upstream.lock.yaml"
@@ -26,7 +31,7 @@ fi
 echo "==> GET $BASE/v1/models"
 curl -fsS "$BASE/v1/models" | python3 -m json.tool | head -40
 
-if [[ "${HCX_DOCTOR_CHAT:-1}" == "1" ]]; then
+if [[ "${CZ_DOCTOR_CHAT:-${HCX_DOCTOR_CHAT:-1}}" == "1" ]]; then
   if [[ -z "${CURSOR_API_KEY:-}" ]]; then
     echo "SKIP chat: CURSOR_API_KEY not set"
   else
@@ -59,4 +64,4 @@ fi
 echo
 echo "Doctor OK."
 echo "Hermes smoke (if hermes installed):"
-echo "  hermes chat -q 'Reply PONG' --provider hcx --model auto"
+echo "  hermes chat -q 'Reply PONG' --provider construct-zero --model auto"

@@ -1,6 +1,6 @@
-# HCX adapter — inference layer
+# Construct-Zero adapter — inference layer
 
-OpenAI-compatible FastAPI service on `127.0.0.1:8765`. Hermes calls it as model provider `hcx`.
+OpenAI-compatible FastAPI service on `127.0.0.1:8765`. Hermes calls it as model provider `construct-zero`.
 
 ## Endpoints
 
@@ -14,12 +14,12 @@ OpenAI-compatible FastAPI service on `127.0.0.1:8765`. Hermes calls it as model 
 
 | Module | Role |
 |--------|------|
-| [server.py](../../adapter/src/hcx/server.py) | FastAPI app, routes |
-| [drivers/cursor.py](../../adapter/src/hcx/drivers/cursor.py) | Cursor SDK, `ask` mode, tool parking |
-| [core/sessions.py](../../adapter/src/hcx/core/sessions.py) | Tool-loop session store |
-| [core/backend.py](../../adapter/src/hcx/core/backend.py) | `InferenceBackend` protocol |
-| [config.py](../../adapter/src/hcx/config.py) | YAML + env config load |
-| [drivers/claude_code.py](../../adapter/src/hcx/drivers/claude_code.py) | **Stub** — do not implement without ask |
+| [server.py](../../adapter/src/construct_zero/server.py) | FastAPI app, routes |
+| [drivers/cursor.py](../../adapter/src/construct_zero/drivers/cursor.py) | Cursor SDK, `ask` mode, tool parking |
+| [core/sessions.py](../../adapter/src/construct_zero/core/sessions.py) | Tool-loop session store |
+| [core/backend.py](../../adapter/src/construct_zero/core/backend.py) | `InferenceBackend` protocol |
+| [config.py](../../adapter/src/construct_zero/config.py) | YAML + env config load |
+| [drivers/claude_code.py](../../adapter/src/construct_zero/drivers/claude_code.py) | **Stub** — do not implement without ask |
 
 ## Tool passthrough (Phase 2)
 
@@ -32,8 +32,8 @@ Tests: [adapter/tests/test_tool_loop.py](../../adapter/tests/test_tool_loop.py),
 
 ## Config
 
-- Example: [config/hermesxcursor.yaml.example](../../config/hermesxcursor.yaml.example)
-- Local (gitignored): `config/hermesxcursor.yaml`, `~/.hermesxcursor/config.yaml`
+- Example: [config/construct-zero.yaml.example](../../config/construct-zero.yaml.example)
+- Local (gitignored): `config/construct-zero.yaml`, `~/.construct-zero/config.yaml`
 - **Must keep** `inference.cursor.mode: ask`
 
 ## What not to build here

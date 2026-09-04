@@ -1,5 +1,5 @@
 [project]
-name = "hcx-vpl"
+name = "construct-zero-vpl"
 version = "0.1.0"
 description = "Voice Presentation Layer — extractive layered speech from long LLM replies (zero extra LLM calls)"
 requires-python = ">=3.10"
@@ -15,7 +15,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/hcx_vpl"]
+packages = ["src/construct_zero_vpl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

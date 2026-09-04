@@ -4,12 +4,13 @@ Status key: **MVP** = shipped in repo | **Stub** = placeholder only | **Out of s
 
 | Feature | Status | Code | Doc |
 |---------|--------|------|-----|
-| HCX adapter (OpenAI façade) | MVP | [adapter/](../../adapter/) | [adapter-inference.md](adapter-inference.md) |
-| Cursor tool passthrough | MVP | [adapter/src/hcx/core/sessions.py](../../adapter/src/hcx/core/sessions.py) | [adapter-inference.md](adapter-inference.md) |
-| Hermes HCX provider plugin | MVP | [hermes-plugin/](../../hermes-plugin/) | [hermes-plugin.md](hermes-plugin.md) |
+| Onboarding suite (`install.sh` + `init.sh`) | MVP | [install.sh](../../install.sh), [scripts/init.sh](../../scripts/init.sh) | [onboarding.md](onboarding.md) |
+| Construct-Zero adapter (OpenAI façade) | MVP | [adapter/](../../adapter/) | [adapter-inference.md](adapter-inference.md) |
+| Cursor tool passthrough | MVP | [adapter/src/construct_zero/core/sessions.py](../../adapter/src/construct_zero/core/sessions.py) | [adapter-inference.md](adapter-inference.md) |
+| Hermes Construct-Zero provider plugin | MVP | [hermes-plugin/](../../hermes-plugin/) | [hermes-plugin.md](hermes-plugin.md) |
 | Voice hold-to-talk sidecar | MVP | [voice/](../../voice/) | [voice-sidecar.md](voice-sidecar.md) |
 | Voice Presentation Layer (VPL) | MVP | [vpl/](../../vpl/) | [voice-vpl.md](voice-vpl.md) |
-| Claude Code driver | Stub | [adapter/src/hcx/drivers/claude_code.py](../../adapter/src/hcx/drivers/claude_code.py) | [adapter-inference.md](adapter-inference.md) |
+| Claude Code driver | Stub | [adapter/src/construct_zero/drivers/claude_code.py](../../adapter/src/construct_zero/drivers/claude_code.py) | [adapter-inference.md](adapter-inference.md) |
 
 ## Out of scope (unless user explicitly requests)
 
@@ -17,7 +18,7 @@ Status key: **MVP** = shipped in repo | **Stub** = placeholder only | **Out of s
 - Claude Code driver implementation (beyond stub)
 - Public exposure of adapter port (must stay loopback)
 - Cursor Cloud / iOS profiles
-- Second agent brain inside HCX (Hermes owns tools)
+- Second agent brain inside Construct-Zero (Hermes owns tools)
 - Vendoring Hermes source in this repo
 
 ## Nested agent entrypoints

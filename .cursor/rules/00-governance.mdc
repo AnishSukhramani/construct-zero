@@ -25,17 +25,17 @@ If the user asks to commit, push, pull, or perform any git mutation: **print exa
 ## B. Secrets and private data
 
 - Never write real API keys, tokens, or passwords into tracked files. Examples and README must use placeholders only.
-- Never stage, track, or weaken ignore rules for: `.env`, `hermes/`, `.venvs/`, `zzz-docs/`, `private/`, `config/hermesxcursor.yaml`, `*.log`, `.claude/`.
+- Never stage, track, or weaken ignore rules for: `.env`, `hermes/`, `.hermes/`, `.construct-zero/`, `.venvs/`, `zzz-docs/`, `private/`, `config/construct-zero.yaml`, `config/hermesxcursor.yaml`, `*.log`, `.claude/`.
 - Never modify `.gitignore` to un-ignore upstream Hermes or secrets without explicit user approval.
 
 ## C. OSS product scope
 
-Shippable paths (HCX product only):
+Shippable paths (Construct-Zero product only):
 
 - `adapter/`, `voice/`, `vpl/`, `hermes-plugin/`, `scripts/`
 - `config/*.example`, `config/upstream.lock.yaml`
 - `docs/`, `.cursor/rules/`, `AGENTS.md`, `ARCHITECTURE.md`, `PRE-COMMIT-CHECKLIST.md`
-- Root meta: `LICENSE`, `README.md`, `.env.example`, `.gitignore`
+- Root meta: `LICENSE`, `README.md`, `.env.example`, `.gitignore`, `.dockerignore`, `install.sh`
 
 Personal Hermes runtime lives in `~/.hermes` (outside this repo). Do not move it into the tree for convenience.
 
@@ -45,5 +45,5 @@ Business or private scratch work belongs in gitignored `private/` or `zzz-docs/`
 
 - Minimal diffs; no drive-by refactors or unrelated changes.
 - Do not edit user-marked immutable files (e.g. plan files flagged do-not-edit).
-- Ask before: new dependencies, `.gitignore` changes, architecture changes to HCX invariants, destructive shell commands.
+- Ask before: new dependencies, `.gitignore` changes, architecture changes to Construct-Zero invariants, destructive shell commands.
 - After material code changes, update docs per `docs-maintenance.mdc`.

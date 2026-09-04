@@ -1,6 +1,6 @@
 # vpl/ — Voice Presentation Layer
 
-Library: `hcx-vpl`. Extractive layered speech — **zero extra LLM calls**.
+Library: `construct-zero-vpl`. Extractive layered speech — **zero extra LLM calls**.
 
 ## Scope
 
@@ -12,16 +12,16 @@ Library: `hcx-vpl`. Extractive layered speech — **zero extra LLM calls**.
 
 | File | Role |
 |------|------|
-| `src/hcx_vpl/engine.py` | `PresentationEngine` |
-| `src/hcx_vpl/parser.py` | Structure extraction |
-| `src/hcx_vpl/intents.py` | Navigation detection |
-| `src/hcx_vpl/planner.py` | Bucket planning |
-| `src/hcx_vpl/renderer.py` | Speak text rendering |
+| `src/construct_zero_vpl/engine.py` | `PresentationEngine` |
+| `src/construct_zero_vpl/parser.py` | Structure extraction |
+| `src/construct_zero_vpl/intents.py` | Navigation detection |
+| `src/construct_zero_vpl/planner.py` | Bucket planning |
+| `src/construct_zero_vpl/renderer.py` | Speak text rendering |
 
 ## Public API
 
 ```python
-from hcx_vpl import PresentationEngine, VplConfig
+from construct_zero_vpl import PresentationEngine, VplConfig
 ```
 
 ## Deep dive

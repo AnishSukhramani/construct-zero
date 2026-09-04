@@ -1,0 +1,5 @@
+name: construct-zero-provider
+kind: model-provider
+version: 1.0.0
+description: Construct-Zero — local OpenAI-compatible adapter for Cursor billing
+author: Construct-Zero

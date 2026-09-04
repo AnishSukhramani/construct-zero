@@ -1,7 +1,7 @@
 [project]
-name = "hcx-voice"
+name = "construct-zero-voice"
 version = "0.1.0"
-description = "HCX hold-to-talk voice sidecar — faster-whisper STT + Kokoro TTS + Hermes bridge"
+description = "Construct-Zero hold-to-talk voice sidecar — faster-whisper STT + Kokoro TTS + Hermes bridge"
 requires-python = ">=3.10,<3.14"
 dependencies = [
   "fastapi>=0.115.0",
@@ -13,24 +13,25 @@ dependencies = [
   "faster-whisper>=1.0.0",
   "kokoro>=0.9.4",
   "torch>=2.0.0",
-  "hcx-vpl",
+  "construct-zero-vpl",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
 
 [project.scripts]
-hcx-voice = "hcx_voice.__main__:main"
+construct-zero-voice = "construct_zero_voice.__main__:main"
+hcx-voice = "construct_zero_voice.__main__:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/hcx_voice"]
+packages = ["src/construct_zero_voice"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"src/hcx_voice/static" = "hcx_voice/static"
+"src/construct_zero_voice/static" = "construct_zero_voice/static"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

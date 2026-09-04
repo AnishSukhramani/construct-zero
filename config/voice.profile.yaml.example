@@ -1,4 +1,4 @@
-# Optional Hermes profile snippets for HCX voice sidecar.
+# Optional Hermes profile snippets for Construct-Zero voice sidecar.
 # Primary v1 path is browser → http://127.0.0.1:8767/turn (hold-to-talk page).
 # Merge relevant pieces into ~/.hermes/config.yaml if you want CLI/gateway TTS later.
 
@@ -9,24 +9,24 @@
 tts:
   # Example: point a custom provider at the sidecar /tts endpoint
   providers:
-    kokoro_hcx:
+    kokoro_cz:
       # Hermes may shell out; adjust to your install
       command: >
         curl -sS -X POST http://127.0.0.1:8767/tts
         -H 'Content-Type: application/json'
         -d '{"text": "{{text}}"}'
-        -o /tmp/hcx-voice-tts.wav
-        && echo /tmp/hcx-voice-tts.wav
+        -o /tmp/construct-zero-voice-tts.wav
+        && echo /tmp/construct-zero-voice-tts.wav
 
 # STT notes (future gateway voice memos):
 #   POST multipart audio to http://127.0.0.1:8767/stt → {"text": "..."}
 
 # Env for voice sidecar:
-#   HCX_VOICE_HOST=127.0.0.1
-#   HCX_VOICE_PORT=8767
-#   HCX_VOICE_WHISPER_MODEL=base   # tiny | base | small
-#   HCX_VOICE_KOKORO_VOICE=af_heart
-#   HCX_VOICE_PRELOAD=1
-#   HCX_HERMES_BIN=/path/to/.venvs/hermes/bin/hermes
+#   CZ_VOICE_HOST=127.0.0.1
+#   CZ_VOICE_PORT=8767
+#   CZ_VOICE_WHISPER_MODEL=base   # tiny | base | small
+#   CZ_VOICE_KOKORO_VOICE=af_heart
+#   CZ_VOICE_PRELOAD=1
+#   CZ_HERMES_BIN=/path/to/.venvs/hermes/bin/hermes
 #   CURSOR_API_KEY=...
-#   HCX_API_KEY=unused
+#   CZ_API_KEY=unused

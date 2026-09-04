@@ -1,5 +1,0 @@
-name: hcx-provider
-kind: model-provider
-version: 1.0.0
-description: HCX — Hermes on Cursor via local OpenAI-compatible adapter
-author: hermesXcursor

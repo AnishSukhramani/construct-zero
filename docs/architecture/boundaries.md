@@ -9,6 +9,7 @@
 | `vpl/` | Yes | Yes |
 | `hermes-plugin/` | Yes | Yes |
 | `scripts/` | Yes | Yes |
+| `install.sh` | Yes | Yes |
 | `config/*.example`, `config/upstream.lock.yaml` | Yes | Yes |
 | `docs/`, `AGENTS.md`, `ARCHITECTURE.md` | Yes | Yes |
 | `.cursor/rules/` | Yes | Yes |
@@ -18,8 +19,9 @@
 | Path | Purpose |
 |------|---------|
 | `hermes/` | Upstream Hermes git clone |
+| `.hermes/`, `.construct-zero/` | Folder-local Hermes home + adapter state (`install.sh`) |
 | `.venvs/`, `adapter/.venv/`, `private/.venv/` | Python virtualenvs |
-| `.env`, `config/hermesxcursor.yaml` | Secrets / local adapter config |
+| `.env`, `config/construct-zero.yaml` | Secrets / local adapter config |
 | `private/` | Local test harness + scratch |
 | `zzz-docs/` | Private research (distill into `docs/`, do not copy wholesale) |
 | `*.log`, `.claude/` | Runtime / IDE local |
@@ -28,8 +30,8 @@
 
 | Location | Purpose |
 |----------|---------|
-| `~/.hermes/` | Hermes runtime: config, skills, memory, plugins |
-| `~/.hermesxcursor/` | Adapter supervisor state |
+| `~/.hermes/` | Hermes runtime when not using a cwd install (`HERMES_HOME` unset) |
+| `~/.construct-zero/` | Adapter supervisor state when `CZ_STATE_DIR` unset |
 
 Agents must **not** move `~/.hermes` content into the repo for convenience.
 
@@ -38,10 +40,10 @@ Agents must **not** move `~/.hermes` content into the repo for convenience.
 | Component | Owns |
 |-----------|------|
 | **Hermes** (upstream) | Agent loop, tools, gateway, skills, memory |
-| **HCX adapter** | OpenAI HTTP, Cursor inference, tool-call passthrough |
+| **Construct-Zero adapter** | OpenAI HTTP, Cursor inference, tool-call passthrough |
 | **Voice sidecar** | STT/TTS, browser UI, Hermes bridge orchestration |
 | **VPL** | Post-hoc speech structuring (no LLM) |
-| **Hermes plugin** | Provider declaration pointing at HCX base URL |
+| **Hermes plugin** | Provider declaration pointing at Construct-Zero base URL |
 
 ## Git policy
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from hcx_vpl.config import VplConfig
-from hcx_vpl.engine import PresentationEngine
-from hcx_vpl.intents import is_navigation_intent
+from construct_zero_vpl.config import VplConfig
+from construct_zero_vpl.engine import PresentationEngine
+from construct_zero_vpl.intents import is_navigation_intent
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

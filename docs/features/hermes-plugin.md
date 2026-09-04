@@ -1,11 +1,11 @@
-# Hermes HCX provider plugin
+# Hermes Construct-Zero provider plugin
 
-Declares provider `hcx` so Hermes routes inference to the local adapter.
+Declares provider `construct-zero` so Hermes routes inference to the local adapter.
 
 ## Location
 
 ```text
-hermes-plugin/model-providers/hcx/
+hermes-plugin/model-providers/construct-zero/
   plugin.yaml    # Declarative metadata
   __init__.py    # register_provider(ProviderProfile(...))
 ```
@@ -16,13 +16,13 @@ hermes-plugin/model-providers/hcx/
 ./scripts/install-hermes-plugin.sh
 ```
 
-Symlinks plugin into `~/.hermes/plugins/model-providers/hcx`. Hermes discovers on next start.
+Symlinks plugin into `~/.hermes/plugins/model-providers/construct-zero`. Hermes discovers on next start. A leftover `hcx` symlink is removed.
 
 ## Provider profile
 
-- **Name:** `hcx` (aliases: `cursor`, `hermesxcursor`, `hcx-cursor`)
+- **Name:** `construct-zero` (aliases: `hcx`, `hermesxcursor`, `hcx-cursor`, `cz`, `cursor`)
 - **base_url:** `http://127.0.0.1:8765/v1`
-- **Auth env:** `HCX_API_KEY` (placeholder `unused` is fine), `HCX_BASE_URL` optional override
+- **Auth env:** `CZ_API_KEY` (placeholder `unused` is fine), `CZ_BASE_URL` optional override. `HCX_API_KEY` / `HCX_BASE_URL` still accepted.
 
 ## Hermes user config
 
@@ -30,7 +30,7 @@ User creates `~/.hermes/config.yaml` (not in repo):
 
 ```yaml
 model:
-  provider: hcx
+  provider: construct-zero
   default: auto
   base_url: http://127.0.0.1:8765/v1
 ```
@@ -47,4 +47,5 @@ Snippet: [config/hermes.config.snippet.yaml](../../config/hermes.config.snippet.
 
 - [adapter-inference.md](adapter-inference.md)
 - [ADR 002](../decisions/002-hermes-not-vendored.md)
+- [ADR 004](../decisions/004-construct-zero-rename.md)
 - [hermes-plugin/AGENTS.md](../../hermes-plugin/AGENTS.md)

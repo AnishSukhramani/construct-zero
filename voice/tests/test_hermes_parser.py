@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from hcx_voice.hermes_bridge import parse_hermes_reply
+from construct_zero_voice.hermes_bridge import parse_hermes_reply
 
 
 SAMPLE_BOX = """

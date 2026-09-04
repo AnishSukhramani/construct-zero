@@ -14,7 +14,12 @@ build/
 # Upstream Hermes — local clone only (created by scripts/setup.sh)
 hermes/
 
+# Instance-local runtime (curl/cwd installs)
+.hermes/
+.construct-zero/
+
 # Local config / secrets
+config/construct-zero.yaml
 config/hermesxcursor.yaml
 .env
 .env.*

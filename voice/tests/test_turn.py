@@ -6,11 +6,11 @@ import base64
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from hcx_vpl.config import VplConfig
-from hcx_vpl.engine import PresentationEngine
+from construct_zero_vpl.config import VplConfig
+from construct_zero_vpl.engine import PresentationEngine
 
-from hcx_voice.server import app, reset_backends, set_backends
-from hcx_voice.session_store import SessionStore
+from construct_zero_voice.server import app, reset_backends, set_backends
+from construct_zero_voice.session_store import SessionStore
 
 FIXTURE = Path(__file__).resolve().parents[2] / "vpl" / "tests" / "fixtures" / "long_backlog.md"
 
@@ -65,7 +65,7 @@ def test_turn_order(monkeypatch):
         assert prompt == "What time is it?"
         return "It is noon."
 
-    monkeypatch.setattr("hcx_voice.server.ask_hermes", fake_ask)
+    monkeypatch.setattr("construct_zero_voice.server.ask_hermes", fake_ask)
 
     client = TestClient(app)
     r = client.post(
@@ -104,7 +104,7 @@ def test_turn_layered_new_question(monkeypatch):
         hermes_calls += 1
         return backlog
 
-    monkeypatch.setattr("hcx_voice.server.ask_hermes", fake_ask)
+    monkeypatch.setattr("construct_zero_voice.server.ask_hermes", fake_ask)
 
     client = TestClient(app)
     r = client.post(
@@ -140,7 +140,7 @@ def test_nav_turn_skips_hermes(monkeypatch):
         hermes_calls += 1
         return backlog
 
-    monkeypatch.setattr("hcx_voice.server.ask_hermes", fake_ask)
+    monkeypatch.setattr("construct_zero_voice.server.ask_hermes", fake_ask)
 
     client = TestClient(app)
 
@@ -177,7 +177,7 @@ def test_turn_empty_transcript(monkeypatch):
         session_store=SessionStore(),
     )
     monkeypatch.setattr(
-        "hcx_voice.server.ask_hermes",
+        "construct_zero_voice.server.ask_hermes",
         lambda *a, **k: (_ for _ in ()).throw(AssertionError("should not call hermes")),
     )
     client = TestClient(app)

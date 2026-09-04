@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from hcx_voice.server import app, reset_backends, set_backends
+from construct_zero_voice.server import app, reset_backends, set_backends
 
 
 class FakeSTT:
@@ -34,7 +34,7 @@ def test_health_shape(monkeypatch):
     reset_backends()
     set_backends(stt=FakeSTT(), tts=FakeTTS())
     monkeypatch.setattr(
-        "hcx_voice.server.check_hcx_up",
+        "construct_zero_voice.server.check_adapter_up",
         lambda timeout=2.0: (True, "ok"),
     )
     client = TestClient(app)
@@ -45,7 +45,8 @@ def test_health_shape(monkeypatch):
     assert "version" in data
     assert data["stt"]["backend"] == "faster-whisper"
     assert data["tts"]["backend"] == "kokoro"
-    assert "hcx" in data
+    assert "adapter" in data
+    assert "hcx" in data  # deprecated alias
     assert "hermes" in data
     assert "cursor_key_present" in data
     reset_backends()

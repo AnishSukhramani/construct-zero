@@ -1,10 +1,10 @@
-# adapter/ — HCX inference layer
+# adapter/ — Construct-Zero inference layer
 
-OpenAI-compatible FastAPI on `127.0.0.1:8765`. Package: `hcx`.
+OpenAI-compatible FastAPI on `127.0.0.1:8765`. Package: `construct_zero`.
 
 ## Scope
 
-- HTTP façade for Hermes `hcx` provider
+- HTTP façade for Hermes `construct-zero` provider
 - Cursor SDK driver (`mode=ask` only)
 - Tool-call parking/resume for Hermes tool loop
 - **Not** tool execution, not Hermes agent logic
@@ -13,16 +13,16 @@ OpenAI-compatible FastAPI on `127.0.0.1:8765`. Package: `hcx`.
 
 | File | Role |
 |------|------|
-| `src/hcx/server.py` | Routes |
-| `src/hcx/drivers/cursor.py` | Cursor SDK + tool passthrough |
-| `src/hcx/core/sessions.py` | Tool-loop sessions |
-| `src/hcx/core/backend.py` | `InferenceBackend` protocol |
-| `src/hcx/config.py` | Config load |
+| `src/construct_zero/server.py` | Routes |
+| `src/construct_zero/drivers/cursor.py` | Cursor SDK + tool passthrough |
+| `src/construct_zero/core/sessions.py` | Tool-loop sessions |
+| `src/construct_zero/core/backend.py` | `InferenceBackend` protocol |
+| `src/construct_zero/config.py` | Config load |
 
 ## Invariants
 
 - Loopback bind; `cursor.mode: ask`
-- See root [.cursor/rules/hcx.mdc](../.cursor/rules/hcx.mdc)
+- See root [.cursor/rules/construct-zero.mdc](../.cursor/rules/construct-zero.mdc)
 
 ## Deep dive
 

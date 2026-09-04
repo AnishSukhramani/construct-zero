@@ -1,13 +1,13 @@
-# HCX — Hermes on Cursor
+# Construct-Zero
 
 Run [Hermes Agent](https://github.com/NousResearch/hermes-agent) at full capability while **Cursor subscription pays for inference** (`auto` and other Cursor models). No OpenRouter / OpenAI / Ollama required for the main path.
 
 ## Invariant
 
-Hermes owns the agent loop and all tools. HCX is an **inference-only** OpenAI-compatible adapter on `127.0.0.1:8765`. Cursor driver mode stays `ask` — never a second agent brain.
+Hermes owns the agent loop and all tools. Construct-Zero is an **inference-only** OpenAI-compatible adapter on `127.0.0.1:8765`. Cursor driver mode stays `ask` — never a second agent brain.
 
 ```text
-You / Gateway  →  Hermes  →  HCX :8765  →  Cursor cloud models
+You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 ```
 
 ## Repo layout
@@ -15,13 +15,13 @@ You / Gateway  →  Hermes  →  HCX :8765  →  Cursor cloud models
 | Path | Role |
 |------|------|
 | `hermes/` | **Local only** — Hermes upstream clone (gitignored; created by `./scripts/setup.sh`) |
-| [`adapter/`](adapter/) | **HCX** FastAPI adapter (`hcx` package) |
+| [`adapter/`](adapter/) | **Construct-Zero** FastAPI adapter (`construct_zero` package) |
 | [`voice/`](voice/) | Hold-to-talk sidecar (STT/TTS + Hermes bridge) on `:8767` |
-| [`vpl/`](vpl/) | Voice Presentation Layer (`hcx-vpl`) — layered spoken delivery, zero extra LLM |
-| [`hermes-plugin/model-providers/hcx/`](hermes-plugin/model-providers/hcx/) | Declarative Hermes provider |
+| [`vpl/`](vpl/) | Voice Presentation Layer (`construct-zero-vpl`) — layered spoken delivery, zero extra LLM |
+| [`hermes-plugin/model-providers/construct-zero/`](hermes-plugin/model-providers/construct-zero/) | Declarative Hermes provider |
 | [`config/upstream.lock.yaml`](config/upstream.lock.yaml) | Recommended Hermes git pin |
-| [`config/hermesxcursor.yaml.example`](config/hermesxcursor.yaml.example) | Adapter config |
-| [`scripts/`](scripts/) | setup, start, doctor, update, voice |
+| [`config/construct-zero.yaml.example`](config/construct-zero.yaml.example) | Adapter config |
+| [`scripts/`](scripts/) | init, install, setup, start, doctor, update, voice |
 
 ## Requirements
 
@@ -32,33 +32,43 @@ You / Gateway  →  Hermes  →  HCX :8765  →  Cursor cloud models
 
 ## Quick start
 
+Each folder is its own install (Hermes home, adapter state, and ports stay inside that directory).
+
+```bash
+mkdir my-agent && cd my-agent
+curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main/install.sh | bash
+```
+
+That clones this repo into the current folder, asks a few setup questions, and does not touch other Construct-Zero copies on the same machine.
+
+Contributor / already-cloned path:
+
 ```bash
 git clone https://github.com/AnishSukhramani/construct-zero.git
 cd construct-zero
+./scripts/init.sh
 
-# Cursor API key — copy .env.example or export in shell
+# Or manual:
 cp .env.example .env   # edit CURSOR_API_KEY
 export CURSOR_API_KEY=crsr_...
-export HCX_API_KEY=unused   # if Hermes provider requires it
-
-# Clone Hermes into gitignored hermes/ + adapter venv + plugin (see config/upstream.lock.yaml)
 ./scripts/setup.sh
-
-# Start adapter (loopback, auto-restart supervisor)
 ./scripts/start-adapter.sh
-
-# Health + smoke chat
 ./scripts/doctor.sh
-
-# Hermes CLI (installed by setup into .venvs/hermes)
-.venvs/hermes/bin/hermes chat -q "Reply PONG" --provider hcx --model auto
 ```
 
-Hermes config snippet (`~/.hermes/config.yaml`):
+After init, daily use:
+
+```bash
+./scripts/start.sh              # adapter (+ --voice if set up)
+./scripts/doctor.sh
+.venvs/hermes/bin/hermes chat -q "Reply PONG" --provider construct-zero --model auto
+```
+
+Hermes config for a cwd install lives in `.hermes/config.yaml` inside that folder (`base_url` uses the port written to `.env`). Global default remains `~/.hermes/config.yaml` when you run `./scripts/init.sh` without `install.sh`:
 
 ```yaml
 model:
-  provider: hcx
+  provider: construct-zero
   default: auto
   base_url: http://127.0.0.1:8765/v1
 ```
@@ -74,13 +84,13 @@ model:
 **Phase 1:** text chat via `cursor-sdk` with `tools=[]` (no Cursor built-in tools).  
 **Phase 2:** Hermes `tools` exposed as SDK `custom_tools`; calls are parked and returned as OpenAI `tool_calls` so **Hermes executes** them; tool results resume the same run.
 
-Future backends implement `InferenceBackend` (`adapter/src/hcx/core/backend.py`). `ClaudeCodeDriver` is a stub.
+Future backends implement `InferenceBackend` (`adapter/src/construct_zero/core/backend.py`). `ClaudeCodeDriver` is a stub.
 
 ## Voice (hold-to-talk)
 
-Browser push-to-talk on `127.0.0.1:8767` — press and hold to speak, release to send. Uses local **faster-whisper** (STT) + **Kokoro** (TTS), then `hermes chat -q` via HCX. Does not replace Hermes CLI `/voice` (Ctrl+B); this is the web / VPS-friendly path.
+Browser push-to-talk on `127.0.0.1:8767` — press and hold to speak, release to send. Uses local **faster-whisper** (STT) + **Kokoro** (TTS), then `hermes chat -q` via Construct-Zero. Does not replace Hermes CLI `/voice` (Ctrl+B); this is the web / VPS-friendly path.
 
-**Layered delivery (VPL):** Long Hermes replies are parsed extractively by [`vpl/`](vpl/) (`hcx-vpl`). The full markdown answer stays on screen unchanged; TTS speaks orient → map → deepen layers using verbatim source spans. Navigation turns (`second`, bucket names, `read all`, etc.) reuse the stored session and **do not call Hermes again**. Short answers pass through unchanged.
+**Layered delivery (VPL):** Long Hermes replies are parsed extractively by [`vpl/`](vpl/) (`construct-zero-vpl`). The full markdown answer stays on screen unchanged; TTS speaks orient → map → deepen layers using verbatim source spans. Navigation turns (`second`, bucket names, `read all`, etc.) reuse the stored session and **do not call Hermes again**. Short answers pass through unchanged.
 
 ```bash
 # Adapter must already be up
@@ -91,7 +101,7 @@ Browser push-to-talk on `127.0.0.1:8767` — press and hold to speak, release to
 # open http://127.0.0.1:8767/
 ```
 
-Optional VPL env vars (see `.env.example`): `HCX_VPL_ENABLED`, `HCX_VPL_LAYER_THRESHOLD_ITEMS`, `HCX_VPL_MAX_BUCKETS`, `HCX_VPL_PASSTHROUGH_MAX_WORDS`, `HCX_VPL_SESSION_TTL_SEC`.
+Optional VPL env vars (see `.env.example`): `CZ_VPL_ENABLED`, `CZ_VPL_LAYER_THRESHOLD_ITEMS`, `CZ_VPL_MAX_BUCKETS`, `CZ_VPL_PASSTHROUGH_MAX_WORDS`, `CZ_VPL_SESSION_TTL_SEC`.
 
 Requires `ffmpeg` (and often `espeak-ng` for Kokoro). First run downloads Whisper + Kokoro weights. On a VPS, keep the sidecar on loopback and tunnel:
 
@@ -103,7 +113,7 @@ See [`config/voice.profile.yaml.example`](config/voice.profile.yaml.example) for
 
 ## Updating
 
-**HCX (this repo):**
+**Construct-Zero (this repo):**
 
 ```bash
 git pull
@@ -136,7 +146,7 @@ cd ../voice && source ../.venvs/voice/bin/activate && pytest -q
 
 1. No external LLM API key for main Hermes chat  
 2. Hermes tools work via Cursor Auto (tool passthrough)  
-3. Hermes updatable via `./scripts/update-hermes.sh` without rewriting HCX  
+3. Hermes updatable via `./scripts/update-hermes.sh` without rewriting Construct-Zero  
 4. Owned surface: OpenAI façade + CursorDriver + Hermes plugin + doctor/harness  
 
 ## Out of scope (for now)
@@ -146,11 +156,21 @@ cd ../voice && source ../.venvs/voice/bin/activate && pytest -q
 - Public exposure of the adapter port  
 - Cursor Cloud / iOS profiles  
 
+## Migration from HCX
+
+This project was previously named **HCX — Hermes on Cursor**. Old names still work for one release:
+
+- Hermes `--provider hcx` is an alias of `construct-zero`
+- `HCX_*` env vars are read if the matching `CZ_*` var is unset
+- `~/.hermesxcursor/` and `config/hermesxcursor.yaml` remain in the config search path
+
+Prefer `CZ_*`, `~/.construct-zero/`, and `provider: construct-zero` in new setups. After pulling, re-run `./scripts/setup.sh` and `./scripts/setup-voice.sh` so editable packages pick up the rename.
+
 ## For maintainers
 
 **Agents:** start at [`AGENTS.md`](AGENTS.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md). Deploy flow: [`PRE-COMMIT-CHECKLIST.md`](PRE-COMMIT-CHECKLIST.md).
 
-`hermes/`, `.venvs/`, `.env`, `config/hermesxcursor.yaml`, `zzz-docs/`, and `private/` are gitignored. After `./scripts/setup.sh`, **`git add .` is safe** — Hermes source is never committed.
+`hermes/`, `.venvs/`, `.env`, `config/construct-zero.yaml`, `zzz-docs/`, and `private/` are gitignored. After `./scripts/setup.sh`, **`git add .` is safe** — Hermes source is never committed.
 
 Before your first push, verify nothing sensitive is staged:
 
@@ -158,11 +178,11 @@ Before your first push, verify nothing sensitive is staged:
 git add .
 git diff --cached --name-only | rg '^hermes/'    # must print nothing
 git diff --cached --name-only | rg '^(\.env$|\.venvs/|zzz-docs/)'  # must print nothing
-git status   # ~50 files, all HCX-owned paths
+git status   # Construct-Zero-owned paths only
 ```
 
 On GitHub, confirm there is no `hermes/` folder in the repo tree.
 
 ## License
 
-HCX adapter, voice sidecar, and plugin: MIT (this repo). [Hermes Agent](https://github.com/NousResearch/hermes-agent) is upstream under its own license (cloned locally into gitignored `hermes/`).
+Construct-Zero adapter, voice sidecar, and plugin: MIT (this repo). [Hermes Agent](https://github.com/NousResearch/hermes-agent) is upstream under its own license (cloned locally into gitignored `hermes/`).

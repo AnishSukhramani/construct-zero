@@ -1,6 +1,6 @@
 # Agent documentation (`docs/`)
 
-Progressive-disclosure knowledge base for Cursor agents working on **construct-zero / HCX**.
+Progressive-disclosure knowledge base for Cursor agents working on **Construct-Zero**.
 
 ## How to navigate
 

@@ -6,12 +6,12 @@ import json
 
 from fastapi.testclient import TestClient
 
-from hcx.config import HCXConfig, load_config
-from hcx.core.backend import CompletionResult, HealthStatus, StreamChunk
-from hcx.core.sessions import SessionStore, ToolLoopSession
-from hcx.drivers.claude_code import ClaudeCodeDriver
-from hcx.openai_types import ChatCompletionRequest, ChatMessage
-from hcx.server import create_app
+from construct_zero.config import CZConfig, load_config
+from construct_zero.core.backend import CompletionResult, HealthStatus, StreamChunk
+from construct_zero.core.sessions import SessionStore, ToolLoopSession
+from construct_zero.drivers.claude_code import ClaudeCodeDriver
+from construct_zero.openai_types import ChatCompletionRequest, ChatMessage
+from construct_zero.server import create_app
 
 
 class FakeBackend:
@@ -75,12 +75,26 @@ def test_load_example_config():
     from pathlib import Path
 
     root = Path(__file__).resolve().parents[2]
-    cfg = load_config(root / "config" / "hermesxcursor.yaml.example")
+    cfg = load_config(root / "config" / "construct-zero.yaml.example")
     assert cfg.adapter.host == "127.0.0.1"
     assert cfg.adapter.port == 8765
     assert cfg.inference.backend == "cursor"
     assert cfg.inference.model == "auto"
     assert cfg.inference.cursor.mode == "ask"
+
+
+def test_cz_env_overrides_and_hcx_fallback(monkeypatch):
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    example = root / "config" / "construct-zero.yaml.example"
+    monkeypatch.delenv("CZ_HOST", raising=False)
+    monkeypatch.setenv("HCX_HOST", "10.0.0.9")
+    cfg = load_config(example)
+    assert cfg.adapter.host == "10.0.0.9"
+    monkeypatch.setenv("CZ_HOST", "127.0.0.2")
+    cfg = load_config(example)
+    assert cfg.adapter.host == "127.0.0.2"
 
 
 def test_tool_loop_session_park_and_deliver():
@@ -105,7 +119,7 @@ def test_claude_code_stub():
 
 
 def test_health_and_models_and_chat(monkeypatch):
-    cfg = HCXConfig()
+    cfg = CZConfig()
     app = create_app(cfg)
     app.state.backend = FakeBackend()
     client = TestClient(app)
@@ -132,7 +146,7 @@ def test_health_and_models_and_chat(monkeypatch):
 
 
 def test_tool_calls_response_shape():
-    cfg = HCXConfig()
+    cfg = CZConfig()
     app = create_app(cfg)
     app.state.backend = FakeBackend()
     client = TestClient(app)
@@ -164,7 +178,7 @@ def test_tool_calls_response_shape():
 
 
 def test_auth_bearer():
-    cfg = HCXConfig()
+    cfg = CZConfig()
     cfg.adapter.api_key = "secret"
     app = create_app(cfg)
     app.state.backend = FakeBackend()

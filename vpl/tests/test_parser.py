@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from hcx_vpl.config import VplConfig
-from hcx_vpl.parser import parse_document
+from construct_zero_vpl.config import VplConfig
+from construct_zero_vpl.parser import parse_document
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

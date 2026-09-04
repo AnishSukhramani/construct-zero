@@ -1,11 +1,11 @@
-# hermes-plugin/ — HCX model provider
+# hermes-plugin/ — Construct-Zero model provider
 
-Declares Hermes provider `hcx` pointing at local adapter.
+Declares Hermes provider `construct-zero` pointing at local adapter.
 
 ## Scope
 
-- `model-providers/hcx/plugin.yaml` — metadata
-- `model-providers/hcx/__init__.py` — `register_provider(ProviderProfile(...))`
+- `model-providers/construct-zero/plugin.yaml` — metadata
+- `model-providers/construct-zero/__init__.py` — `register_provider(ProviderProfile(...))`
 - **Declarative only** — no inference runtime here
 
 ## Install
@@ -14,7 +14,7 @@ Declares Hermes provider `hcx` pointing at local adapter.
 ./scripts/install-hermes-plugin.sh
 ```
 
-Symlinks into `~/.hermes/plugins/model-providers/hcx`.
+Symlinks into `~/.hermes/plugins/model-providers/construct-zero`.
 
 ## Deep dive
 

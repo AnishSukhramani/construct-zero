@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+# Shared helpers for init/start scripts (prompts, env loading).
+# Source from scripts/init.sh or scripts/start.sh — not from legacy setup paths.
+
+# shellcheck disable=SC2034
+CZ_LIB_COMMON_LOADED=1
+
+cz_root() {
+  if [[ -n "${CZ_ROOT:-${HCX_ROOT:-}}" ]]; then
+    printf '%s\n' "${CZ_ROOT:-$HCX_ROOT}"
+    return 0
+  fi
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}")" && pwd)"
+  if [[ "$(basename "$script_dir")" == "lib" ]]; then
+    cd "$script_dir/../.." && pwd
+  else
+    cd "$script_dir/.." && pwd
+  fi
+}
+
+# Copy HCX_* into CZ_* when the CZ_* var is unset (one-release shim).
+cz_shim_legacy_env() {
+  local suffix cz hcx
+  for suffix in \
+    API_KEY HOST PORT CONFIG MODEL BACKEND PID_FILE LOG_FILE \
+    MAX_RESTARTS RESTART_DELAY AUTO ROOT DOCTOR_CHAT SKIP_HERMES SKIP_PLUGIN \
+    INIT_VOICE INIT_START INIT_HERMES INIT_HERMES_CONFIG \
+    VOICE_PID_FILE VOICE_LOG_FILE VOICE_HOST VOICE_PORT \
+    VOICE_MAX_RESTARTS VOICE_RESTART_DELAY VOICE_PRELOAD VOICE_ALLOW_PUBLIC \
+    VOICE_KOKORO_VOICE VOICE_WHISPER_MODEL VOICE_WHISPER_DEVICE VOICE_WHISPER_COMPUTE \
+    VOICE_HERMES_TIMEOUT VPL_ENABLED VPL_LAYER_THRESHOLD_ITEMS VPL_MAX_BUCKETS \
+    VPL_PASSTHROUGH_MAX_WORDS VPL_SESSION_TTL_SEC REPO_ROOT HERMES_BIN HEALTH_URL \
+    BASE_URL; do
+    cz="CZ_${suffix}"
+    hcx="HCX_${suffix}"
+    if [[ -z "${!cz:-}" && -n "${!hcx:-}" ]]; then
+      export "${cz}=${!hcx}"
+    fi
+  done
+}
+
+# Load .env without overwriting variables already set in the environment.
+cz_load_env() {
+  local root env_file key val
+  root="$(cz_root)"
+  env_file="$root/.env"
+  if [[ -f "$env_file" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+      if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+        key="${BASH_REMATCH[1]}"
+        val="${BASH_REMATCH[2]}"
+        val="${val%\"}"
+        val="${val#\"}"
+        val="${val%\'}"
+        val="${val#\'}"
+        if [[ -z "${!key:-}" ]]; then
+          export "$key=$val"
+        fi
+      fi
+    done <"$env_file"
+  fi
+  cz_shim_legacy_env
+}
+
+cz_has_gum() {
+  command -v gum >/dev/null 2>&1
+}
+
+cz_is_interactive() {
+  [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" != "1" && -t 0 && -t 1 ]]
+}
+
+# ask_yn "Question?" default_yes|default_no  → prints yes/no to stdout
+cz_ask_yn() {
+  local question="${1:?question required}"
+  local default="${2:-yes}"
+  local prompt_suffix answer
+
+  if [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" == "1" ]]; then
+    if [[ "$default" == "yes" ]]; then
+      printf 'yes\n'
+    else
+      printf 'no\n'
+    fi
+    return 0
+  fi
+
+  if [[ "$default" == "yes" ]]; then
+    prompt_suffix="[Y/n]"
+  else
+    prompt_suffix="[y/N]"
+  fi
+
+  if cz_has_gum; then
+    if [[ "$default" == "yes" ]]; then
+      if gum confirm "$question" --default=true --affirmative "Yes" --negative "No" >/dev/null 2>&1; then
+        printf 'yes\n'
+      else
+        printf 'no\n'
+      fi
+    else
+      if gum confirm "$question" --default=false --affirmative "Yes" --negative "No" >/dev/null 2>&1; then
+        printf 'yes\n'
+      else
+        printf 'no\n'
+      fi
+    fi
+    return 0
+  fi
+
+  read -r -p "$question $prompt_suffix " answer || true
+  answer="${answer:-}"
+  if [[ -z "$answer" ]]; then
+    printf '%s\n' "$default"
+    return 0
+  fi
+  case "$(echo "$answer" | tr '[:upper:]' '[:lower:]')" in
+    y|yes) printf 'yes\n' ;;
+    n|no) printf 'no\n' ;;
+    *) printf '%s\n' "$default" ;;
+  esac
+}
+
+# ask_secret "Prompt" → prints value to stdout (may be empty)
+cz_ask_secret() {
+  local prompt="${1:-Cursor API key (Enter to skip)}"
+  local value=""
+
+  if [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" == "1" ]]; then
+    printf '%s\n' "${CURSOR_API_KEY:-}"
+    return 0
+  fi
+
+  if cz_has_gum; then
+    value="$(gum input --password --placeholder "$prompt" 2>/dev/null || true)"
+    printf '%s\n' "$value"
+    return 0
+  fi
+
+  read -r -s -p "$prompt: " value || true
+  echo >&2
+  printf '%s\n' "$value"
+}
+
+cz_info() {
+  if cz_has_gum && [[ -t 1 ]]; then
+    gum style --foreground 14 "$*" >&2
+  else
+    echo "==> $*" >&2
+  fi
+}
+
+cz_warn() {
+  if cz_has_gum && [[ -t 1 ]]; then
+    gum style --foreground 11 "WARNING: $*" >&2
+  else
+    echo "WARNING: $*" >&2
+  fi
+}
+
+cz_spin() {
+  local title="${1:?title required}"
+  shift
+  if cz_has_gum && [[ -t 1 ]]; then
+    gum spin --spinner dot --title "$title" -- "$@"
+  else
+    echo "==> $title" >&2
+    "$@"
+  fi
+}
+
+cz_preflight() {
+  local missing=0
+  for cmd in git python3 curl; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      echo "Missing required command: $cmd" >&2
+      missing=1
+    fi
+  done
+  if ! command -v uv >/dev/null 2>&1; then
+    cz_warn "uv not found — setup will use python3 -m venv (slower)"
+  fi
+  if ! command -v ffmpeg >/dev/null 2>&1; then
+    cz_warn "ffmpeg not found — voice STT may be limited until installed"
+  fi
+  if (( missing )); then
+    return 1
+  fi
+}
+
+# Write key=value to .env (replace existing line or append).
+cz_env_set() {
+  local root key val env_file tmp
+  root="$(cz_root)"
+  key="${1:?key required}"
+  val="${2:-}"
+  env_file="$root/.env"
+  tmp="$(mktemp)"
+  if [[ -f "$env_file" ]]; then
+    grep -v "^${key}=" "$env_file" >"$tmp" || true
+  fi
+  printf '%s=%s\n' "$key" "$val" >>"$tmp"
+  mv "$tmp" "$env_file"
+  chmod 600 "$env_file" 2>/dev/null || true
+}
+
+# Ensure Hermes config for this install (never overwrite without confirm).
+cz_write_hermes_config() {
+  local root snippet dest hermes_home port
+  root="$(cz_root)"
+  snippet="$root/config/hermes.config.snippet.yaml"
+  hermes_home="${HERMES_HOME:-$HOME/.hermes}"
+  dest="$hermes_home/config.yaml"
+  port="${CZ_PORT:-${HCX_PORT:-8765}}"
+
+  if [[ ! -f "$snippet" ]]; then
+    cz_warn "Missing $snippet — skipping Hermes config"
+    return 1
+  fi
+
+  mkdir -p "$hermes_home"
+
+  if [[ -f "$dest" ]]; then
+    if [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" == "1" ]]; then
+      cz_info "Hermes config exists at $dest — leaving unchanged (--auto)"
+      return 0
+    fi
+    if [[ "$(cz_ask_yn "Hermes config already exists at $dest. Overwrite?" "no")" != "yes" ]]; then
+      cz_info "Keeping existing Hermes config"
+      return 0
+    fi
+  fi
+
+  sed "s|127.0.0.1:8765|127.0.0.1:${port}|g" "$snippet" >"$dest"
+  cz_info "Wrote $dest"
+}

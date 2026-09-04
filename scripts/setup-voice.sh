@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create voice sidecar venv and install deps (hcx-vpl + faster-whisper + Kokoro).
+# Create voice sidecar venv and install deps (construct-zero-vpl + faster-whisper + Kokoro).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,13 +10,17 @@ VENV="$ROOT/.venvs/voice"
 mkdir -p "$ROOT/.venvs"
 
 echo "==> Creating voice venv at $VENV"
+if [[ -d "$VENV" ]] && [[ ! -x "$VENV/bin/python" ]]; then
+  echo "    Removing broken voice venv (missing bin/python)"
+  rm -rf "$VENV"
+fi
 if command -v uv >/dev/null 2>&1; then
   if [[ ! -d "$VENV" ]]; then
     uv venv "$VENV" --python 3.12 || uv venv "$VENV" --python 3.11 || uv venv "$VENV"
   fi
-  echo "==> Installing hcx-vpl (editable)"
+  echo "==> Installing construct-zero-vpl (editable)"
   uv pip install -e "${VPL}[dev]" --python "$VENV/bin/python"
-  echo "==> Installing hcx-voice (editable)"
+  echo "==> Installing construct-zero-voice (editable)"
   uv pip install -e "${VOICE}[dev]" --python "$VENV/bin/python"
 else
   if [[ ! -d "$VENV" ]]; then
@@ -38,8 +42,8 @@ cat <<EOF
 
 Voice setup complete.
 
-1. Ensure HCX adapter is running:  ./scripts/start-adapter.sh
-2. Export CURSOR_API_KEY (and HCX_API_KEY=unused if Hermes requires it)
+1. Ensure Construct-Zero adapter is running:  ./scripts/start-adapter.sh
+2. Export CURSOR_API_KEY (and CZ_API_KEY=unused if Hermes requires it)
 3. Start voice:  ./scripts/start-voice.sh
 4. Open:         http://127.0.0.1:8767/
 
@@ -47,8 +51,8 @@ Layered delivery (VPL): long Hermes replies are spoken in orient/map/deepen laye
 Full reply stays on screen; navigation turns skip Hermes. See vpl/README.md.
 
 First STT/TTS call downloads models (Whisper + Kokoro/HF). Disk + network needed.
-Optional: HCX_VOICE_PRELOAD=1 to load models at startup.
-Optional: HCX_VPL_ENABLED=0 to disable layered delivery.
+Optional: CZ_VOICE_PRELOAD=1 to load models at startup.
+Optional: CZ_VPL_ENABLED=0 to disable layered delivery.
 Optional: brew/apt install espeak-ng if Kokoro phonemizer requires it.
 
 EOF

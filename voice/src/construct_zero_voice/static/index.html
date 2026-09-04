@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Construct-Zero Voice — Hold to talk</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <p class="brand">Construct-Zero Voice</p>
+      <h1>Hold to talk</h1>
+      <p class="sub">Press and hold, speak, release — Hermes replies aloud via Cursor.</p>
+    </header>
+
+    <p id="status" class="status" aria-live="polite">idle</p>
+
+    <button
+      id="ptt"
+      type="button"
+      class="ptt"
+      aria-pressed="false"
+      aria-label="Hold to talk"
+    >
+      Hold to talk
+    </button>
+
+    <p id="nav-hint" class="nav-hint" aria-live="polite"></p>
+    <div id="buckets" class="buckets" aria-label="Navigation groups"></div>
+
+    <section class="transcripts" aria-live="polite">
+      <div>
+        <h2>You</h2>
+        <p id="you">—</p>
+      </div>
+      <div>
+        <h2>Hermes</h2>
+        <p id="hermes">—</p>
+      </div>
+    </section>
+
+    <audio id="player" controls class="player"></audio>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>

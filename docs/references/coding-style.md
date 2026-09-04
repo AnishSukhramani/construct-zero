@@ -8,19 +8,19 @@ Lean, surgical changes aligned with [.cursor/rules/00-governance.mdc](../../.cur
 2. **Match existing patterns** — naming, imports, test style in the target package.
 3. **One subsystem per task** — read nested `AGENTS.md` before editing that tree.
 4. **Verify in code** — never document or implement behavior you have not traced in source.
-5. **Ask before** — new dependencies, `.gitignore` changes, HCX invariant changes, destructive shell.
+5. **Ask before** — new dependencies, `.gitignore` changes, Construct-Zero invariant changes, destructive shell.
 
 ## Where to edit (cheat sheet)
 
 | Task | Primary paths |
 |------|----------------|
-| OpenAI API / streaming | `adapter/src/hcx/server.py`, `openai_types.py` |
-| Cursor SDK / tools | `adapter/src/hcx/drivers/cursor.py`, `core/sessions.py` |
-| Adapter config | `adapter/src/hcx/config.py`, `config/hermesxcursor.yaml.example` |
-| Voice `/turn` flow | `voice/src/hcx_voice/server.py` |
-| Hermes subprocess | `voice/src/hcx_voice/hermes_bridge.py` |
-| VPL parsing / FSM | `vpl/src/hcx_vpl/parser.py`, `engine.py`, `intents.py` |
-| Provider metadata | `hermes-plugin/model-providers/hcx/` |
+| OpenAI API / streaming | `adapter/src/construct_zero/server.py`, `openai_types.py` |
+| Cursor SDK / tools | `adapter/src/construct_zero/drivers/cursor.py`, `core/sessions.py` |
+| Adapter config | `adapter/src/construct_zero/config.py`, `config/construct-zero.yaml.example` |
+| Voice `/turn` flow | `voice/src/construct_zero_voice/server.py` |
+| Hermes subprocess | `voice/src/construct_zero_voice/hermes_bridge.py` |
+| VPL parsing / FSM | `vpl/src/construct_zero_vpl/parser.py`, `engine.py`, `intents.py` |
+| Provider metadata | `hermes-plugin/model-providers/construct-zero/` |
 | Bootstrap scripts | `scripts/setup.sh`, `ensure-hermes.sh` |
 | Agent docs | `docs/features/`, nested `AGENTS.md` |
 
@@ -36,7 +36,7 @@ Default pytest uses mocks — no `CURSOR_API_KEY`, no Hermes clone required.
 
 ## Anti-patterns
 
-- Adding a second agent brain in HCX
+- Adding a second agent brain in Construct-Zero
 - Committing secrets, `hermes/`, or `private/`
 - Bloating root `AGENTS.md` — use `docs/` instead
 - Copying gitignored `zzz-docs/` verbatim into committed docs

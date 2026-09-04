@@ -1,0 +1,16 @@
+---
+description: Construct-Zero adapter invariants
+alwaysApply: true
+---
+
+# Construct-Zero invariants
+
+See also `00-governance.mdc` for git and OSS boundaries.
+
+- Hermes owns the agent loop and all tools (terminal, web, skills, memory, gateway).
+- The Construct-Zero adapter is inference-only. Cursor driver mode must stay `ask`, never `agent`.
+- Adapter binds loopback only (`127.0.0.1`). Do not expose the port publicly.
+- Hermes clones into gitignored `hermes/` on setup (not vendored in this repo) — `./scripts/setup.sh` / `scripts/update-hermes.sh`.
+- Provider plugin is declarative under `hermes-plugin/model-providers/construct-zero/`.
+- Auth for Cursor: `CURSOR_API_KEY`. Optional adapter bearer: `CZ_API_KEY`.
+- Before debugging Hermes model issues, run `scripts/doctor.sh` and confirm `/health`.

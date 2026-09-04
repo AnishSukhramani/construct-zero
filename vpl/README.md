@@ -1,4 +1,4 @@
-# hcx-vpl — Voice Presentation Layer
+# construct-zero-vpl — Voice Presentation Layer
 
 Extractive, **zero extra LLM** layered speech from long assistant replies. Parses Markdown structure, buckets numbered items, and drives an orient → map → deepen navigation FSM with keyword/ordinal intents.
 
@@ -14,7 +14,7 @@ pip install -e '.[dev]'
 ## Quick API
 
 ```python
-from hcx_vpl import PresentationEngine, VplConfig
+from construct_zero_vpl import PresentationEngine, VplConfig
 
 engine = PresentationEngine(VplConfig(enabled=True))
 full_text = open("long_reply.md").read()
@@ -43,17 +43,17 @@ reply = ask_brain(user_text)
 session, turn = engine.begin(reply)
 ```
 
-The voice sidecar implements the Hermes-specific bridge in `voice/src/hcx_voice/hermes_bridge.py`.
+The voice sidecar implements the Hermes-specific bridge in `voice/src/construct_zero_voice/hermes_bridge.py`.
 
 ## Configuration
 
 | Env var | Default | Purpose |
 |---------|---------|---------|
-| `HCX_VPL_ENABLED` | `1` | Toggle layered delivery |
-| `HCX_VPL_LAYER_THRESHOLD_ITEMS` | `5` | Min numbered items to layer |
-| `HCX_VPL_MAX_BUCKETS` | `4` | Spoken bucket cap |
-| `HCX_VPL_PASSTHROUGH_MAX_WORDS` | `400` | Short answers: speak all |
-| `HCX_VPL_SESSION_TTL_SEC` | `1800` | Session expiry |
+| `CZ_VPL_ENABLED` | `1` | Toggle layered delivery |
+| `CZ_VPL_LAYER_THRESHOLD_ITEMS` | `5` | Min numbered items to layer |
+| `CZ_VPL_MAX_BUCKETS` | `4` | Spoken bucket cap |
+| `CZ_VPL_PASSTHROUGH_MAX_WORDS` | `400` | Short answers: speak all |
+| `CZ_VPL_SESSION_TTL_SEC` | `1800` | Session expiry |
 
 ## Tests
 
@@ -65,4 +65,4 @@ Includes a 16-item regression fixture (`tests/fixtures/long_backlog.md`) for buc
 
 ## License
 
-MIT — same as construct-zero / HCX.
+MIT — same as Construct-Zero.

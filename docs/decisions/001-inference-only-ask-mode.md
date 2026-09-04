@@ -8,10 +8,10 @@ Hermes is a full agent with tools. Cursor also has agent mode with built-in tool
 
 ## Decision
 
-HCX adapter is **inference-only**. Cursor driver uses SDK `mode=ask`. Hermes tools are passthrough via `custom_tools`; Hermes executes all tool results.
+Construct-Zero adapter is **inference-only**. Cursor driver uses SDK `mode=ask`. Hermes tools are passthrough via `custom_tools`; Hermes executes all tool results.
 
 ## Consequences
 
-- Config must keep `cursor.mode: ask` in [config/hermesxcursor.yaml.example](../../config/hermesxcursor.yaml.example).
+- Config must keep `cursor.mode: ask` in [config/construct-zero.yaml.example](../../config/construct-zero.yaml.example).
 - Do not enable Cursor built-in tools in the adapter path.
-- Feature work belongs in Hermes upstream or HCX passthrough — not a second agent in HCX.
+- Feature work belongs in Hermes upstream or Construct-Zero passthrough — not a second agent in Construct-Zero.

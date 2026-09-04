@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from hcx_vpl.intents import IntentKind, is_navigation_intent, parse_intent
-from hcx_vpl.models import Bucket, ListItem, SourceSpan
+from construct_zero_vpl.intents import IntentKind, is_navigation_intent, parse_intent
+from construct_zero_vpl.models import Bucket, ListItem, SourceSpan
 
 
 def _bucket(label: str) -> Bucket:
