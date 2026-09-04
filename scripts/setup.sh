@@ -53,6 +53,7 @@ if [[ ! -d .venv ]]; then
   cz_venv_create .venv
 fi
 cz_pip_editable .venv/bin/python ".[dev]"
+cd "$ROOT"
 
 echo "==> Hermes CLI venv (for chat + voice bridge)"
 HERMES_VENV="$ROOT/.venvs/hermes"
@@ -66,9 +67,9 @@ elif [[ -d "$ROOT/hermes/.git" ]] || [[ -f "$ROOT/hermes/.git" ]]; then
   if [[ ! -x "$HERMES_VENV/bin/hermes" ]]; then
     mkdir -p "$ROOT/.venvs"
     cz_venv_create "$HERMES_VENV"
-    cz_pip_editable "$HERMES_VENV/bin/python" "./hermes[all]"
+    cz_pip_editable "$HERMES_VENV/bin/python" "$ROOT/hermes[all]"
   else
-    cz_pip_editable "$HERMES_VENV/bin/python" "./hermes[all]"
+    cz_pip_editable "$HERMES_VENV/bin/python" "$ROOT/hermes[all]"
   fi
 else
   echo "    Skipped (no Hermes clone in hermes/)"
