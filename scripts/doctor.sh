@@ -28,18 +28,37 @@ if [[ "$status" != "ok" ]]; then
   exit 1
 fi
 
+_doctor_auth_header() {
+  local key="${CZ_API_KEY:-${HCX_API_KEY:-}}"
+  if [[ -n "$key" && "$key" != "unused" ]]; then
+    printf '%s\n' "Authorization: Bearer ${key}"
+  fi
+}
+
 echo "==> GET $BASE/v1/models"
-curl -fsS "$BASE/v1/models" | python3 -m json.tool | head -40
+auth_hdr="$(_doctor_auth_header)"
+if [[ -n "$auth_hdr" ]]; then
+  curl -fsS -H "$auth_hdr" "$BASE/v1/models" | python3 -m json.tool | head -40
+else
+  curl -fsS "$BASE/v1/models" | python3 -m json.tool | head -40
+fi
 
 if [[ "${CZ_DOCTOR_CHAT:-${HCX_DOCTOR_CHAT:-1}}" == "1" ]]; then
   if [[ -z "${CURSOR_API_KEY:-}" ]]; then
     echo "SKIP chat: CURSOR_API_KEY not set"
   else
     echo "==> POST chat.completions (non-stream)"
-    curl -fsS "$BASE/v1/chat/completions" \
-      -H "Content-Type: application/json" \
-      -d '{"model":"auto","messages":[{"role":"user","content":"Reply with exactly one word: PONG"}]}' \
-      | python3 -m json.tool | head -60
+    if [[ -n "$auth_hdr" ]]; then
+      curl -fsS -H "Content-Type: application/json" -H "$auth_hdr" \
+        "$BASE/v1/chat/completions" \
+        -d '{"model":"auto","messages":[{"role":"user","content":"Reply with exactly one word: PONG"}]}' \
+        | python3 -m json.tool | head -60
+    else
+      curl -fsS "$BASE/v1/chat/completions" \
+        -H "Content-Type: application/json" \
+        -d '{"model":"auto","messages":[{"role":"user","content":"Reply with exactly one word: PONG"}]}' \
+        | python3 -m json.tool | head -60
+    fi
   fi
 fi
 

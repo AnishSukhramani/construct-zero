@@ -105,7 +105,10 @@ def load_config(path: Path | None = None) -> CZConfig:
         data.setdefault("adapter", {})["port"] = int(port)
     api_key = env_cz("API_KEY")
     if api_key is not None:
-        data.setdefault("adapter", {})["api_key"] = api_key
+        stripped = api_key.strip()
+        # "unused" is the Hermes provider placeholder, not adapter HTTP auth.
+        if stripped and stripped.lower() != "unused":
+            data.setdefault("adapter", {})["api_key"] = stripped
     model = env_cz("MODEL")
     if model:
         data.setdefault("inference", {})["model"] = model

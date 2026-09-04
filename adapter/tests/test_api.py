@@ -189,3 +189,16 @@ def test_auth_bearer():
         client.get("/v1/models", headers={"Authorization": "Bearer secret"}).status_code
         == 200
     )
+
+
+def test_unused_cz_api_key_does_not_require_bearer(monkeypatch, tmp_path):
+    cfg_path = tmp_path / "construct-zero.yaml"
+    cfg_path.write_text("adapter:\n  api_key: \"\"\n")
+    monkeypatch.setenv("CZ_CONFIG", str(cfg_path))
+    monkeypatch.setenv("CZ_API_KEY", "unused")
+    cfg = load_config()
+    assert cfg.adapter.api_key == ""
+    app = create_app(cfg)
+    app.state.backend = FakeBackend()
+    client = TestClient(app)
+    assert client.get("/v1/models").status_code == 200
