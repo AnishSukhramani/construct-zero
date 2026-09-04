@@ -138,7 +138,7 @@ if [[ "$DO_HERMES" != "1" ]]; then
   setup_args+=(--skip-hermes)
 fi
 
-cz_spin "Running core setup..." "$ROOT/scripts/setup.sh" "${setup_args[@]}"
+cz_spin "Running core setup..." "$ROOT/scripts/setup.sh" ${setup_args[@]+"${setup_args[@]}"}
 
 if [[ "$DO_VOICE" == "1" ]]; then
   cz_spin "Setting up voice..." "$ROOT/scripts/setup-voice.sh"
@@ -151,7 +151,7 @@ fi
 if [[ "$DO_START" == "1" ]]; then
   start_args=()
   [[ "$DO_VOICE" == "1" ]] && start_args+=(--voice)
-  cz_spin "Starting services..." "$ROOT/scripts/start.sh" "${start_args[@]}"
+  cz_spin "Starting services..." "$ROOT/scripts/start.sh" ${start_args[@]+"${start_args[@]}"}
   sleep 1
   cz_spin "Running doctor..." "$ROOT/scripts/doctor.sh"
 fi
