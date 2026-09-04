@@ -21,12 +21,13 @@ You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 | [`hermes-plugin/model-providers/construct-zero/`](hermes-plugin/model-providers/construct-zero/) | Declarative Hermes provider |
 | [`config/upstream.lock.yaml`](config/upstream.lock.yaml) | Recommended Hermes git pin |
 | [`config/construct-zero.yaml.example`](config/construct-zero.yaml.example) | Adapter config |
+| [`construct-zero`](construct-zero) | Folder-local CLI (`start`, `doctor`, `init`, `chat`, `help`) |
 | [`scripts/`](scripts/) | init, install, setup, start, doctor, update, voice |
 
 ## Requirements
 
 - Git, curl, Python 3.11+ (3.12 preferred)
-- [uv](https://docs.astral.sh/uv/) is offered during `install.sh` / `./scripts/init.sh` (recommended; no Homebrew required)
+- [uv](https://docs.astral.sh/uv/) is offered during `install.sh` / `./construct-zero init` (recommended; no Homebrew required)
 - `CURSOR_API_KEY` from [Cursor dashboard](https://cursor.com/dashboard) → API Keys
 - Voice: `ffmpeg` (and often `espeak-ng` for Kokoro)
 
@@ -39,14 +40,14 @@ mkdir my-agent && cd my-agent
 curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main/install.sh | bash
 ```
 
-That clones this repo into the current folder, asks a few setup questions, and does not touch other Construct-Zero copies on the same machine.
+That clones this repo into the current folder, asks a few setup questions (Y/N and API key; press Enter to skip any of them), then shows `./construct-zero help`. It does not touch other Construct-Zero copies on the same machine.
 
 Contributor / already-cloned path:
 
 ```bash
 git clone https://github.com/AnishSukhramani/construct-zero.git
 cd construct-zero
-./scripts/init.sh
+./construct-zero init
 
 # Or manual:
 cp .env.example .env   # edit CURSOR_API_KEY
@@ -56,15 +57,17 @@ export CURSOR_API_KEY=crsr_...
 ./scripts/doctor.sh
 ```
 
-After init, daily use:
+After init, daily use (`./construct-zero help` reprints the menu):
 
 ```bash
-./scripts/start.sh              # adapter (+ --voice if set up)
-./scripts/doctor.sh
-.venvs/hermes/bin/hermes chat -q "Reply PONG" --provider construct-zero --model auto
+./construct-zero start              # adapter (+ --voice if set up)
+./construct-zero doctor
+./construct-zero chat -q "Reply PONG"
 ```
 
-Hermes config for a cwd install lives in `.hermes/config.yaml` inside that folder (`base_url` uses the port written to `.env`). Global default remains `~/.hermes/config.yaml` when you run `./scripts/init.sh` without `install.sh`:
+`scripts/start.sh`, `scripts/doctor.sh`, and `scripts/init.sh` still work. `chat` runs Hermes with `--provider construct-zero` and `--model auto` if you omit `--model`.
+
+Hermes config for a cwd install lives in `.hermes/config.yaml` inside that folder (`base_url` uses the port written to `.env`). Global default remains `~/.hermes/config.yaml` when you run `./construct-zero init` without `install.sh`:
 
 ```yaml
 model:

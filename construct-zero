@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# Construct-Zero CLI dispatcher. Not installed on PATH — run as ./construct-zero.
+# Resolves repo root from this script's location, not the current working directory.
+set -euo pipefail
+
+_cz_resolve_root() {
+  local source dir
+  source="${BASH_SOURCE[0]:-$0}"
+  while [[ -L "$source" ]]; do
+    dir="$(cd "$(dirname "$source")" && pwd)"
+    source="$(readlink "$source")"
+    [[ "$source" != /* ]] && source="$dir/$source"
+  done
+  (cd "$(dirname "$source")" && pwd)
+}
+
+ROOT="$(_cz_resolve_root)"
+export CZ_ROOT="$ROOT"
+# shellcheck source=scripts/lib/common.sh
+source "$ROOT/scripts/lib/common.sh"
+# shellcheck source=scripts/lib/help.sh
+source "$ROOT/scripts/lib/help.sh"
+
+cz_load_env
+
+cz_chat() {
+  local hermes has_provider has_model arg extra
+  hermes="${HERMES_BIN:-$ROOT/.venvs/hermes/bin/hermes}"
+  if [[ ! -x "$hermes" ]]; then
+    echo "Hermes CLI not found at $hermes" >&2
+    echo "Run: ./construct-zero init" >&2
+    exit 1
+  fi
+
+  has_provider=0
+  has_model=0
+  for arg in "$@"; do
+    case "$arg" in
+      --provider|--provider=*) has_provider=1 ;;
+      --model|--model=*) has_model=1 ;;
+    esac
+  done
+
+  extra=()
+  [[ "$has_provider" == "0" ]] && extra+=(--provider construct-zero)
+  [[ "$has_model" == "0" ]] && extra+=(--model auto)
+
+  exec "$hermes" chat "$@" ${extra[@]+"${extra[@]}"}
+}
+
+cmd="${1:-help}"
+if [[ $# -gt 0 ]]; then
+  shift
+fi
+
+case "$cmd" in
+  start)
+    exec "$ROOT/scripts/start.sh" "$@"
+    ;;
+  doctor)
+    exec "$ROOT/scripts/doctor.sh" "$@"
+    ;;
+  init)
+    exec "$ROOT/scripts/init.sh" "$@"
+    ;;
+  chat)
+    cz_chat "$@"
+    ;;
+  help|--help|-h|/help|/)
+    cz_print_help
+    ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    echo >&2
+    cz_print_help >&2
+    exit 1
+    ;;
+esac

@@ -10,6 +10,7 @@
 | `hermes-plugin/` | Yes | Yes |
 | `scripts/` | Yes | Yes |
 | `install.sh` | Yes | Yes |
+| `construct-zero` | Yes | Yes |
 | `config/*.example`, `config/upstream.lock.yaml` | Yes | Yes |
 | `docs/`, `AGENTS.md`, `ARCHITECTURE.md` | Yes | Yes |
 | `.cursor/rules/` | Yes | Yes |

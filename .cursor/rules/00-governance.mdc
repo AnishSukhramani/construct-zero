@@ -35,7 +35,7 @@ Shippable paths (Construct-Zero product only):
 - `adapter/`, `voice/`, `vpl/`, `hermes-plugin/`, `scripts/`
 - `config/*.example`, `config/upstream.lock.yaml`
 - `docs/`, `.cursor/rules/`, `AGENTS.md`, `ARCHITECTURE.md`, `PRE-COMMIT-CHECKLIST.md`
-- Root meta: `LICENSE`, `README.md`, `.env.example`, `.gitignore`, `.dockerignore`, `install.sh`
+- Root meta: `LICENSE`, `README.md`, `.env.example`, `.gitignore`, `.dockerignore`, `install.sh`, `construct-zero`
 
 Personal Hermes runtime lives in `~/.hermes` (outside this repo). Do not move it into the tree for convenience.
 

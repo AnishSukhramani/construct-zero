@@ -17,7 +17,7 @@ LOCK="$ROOT/config/upstream.lock.yaml"
 echo "==> GET $BASE/health"
 health="$(curl -fsS "$BASE/health" || true)"
 if [[ -z "$health" ]]; then
-  echo "FAIL: adapter not reachable. Start with scripts/start-adapter.sh" >&2
+  echo "FAIL: adapter not reachable. Start with ./construct-zero start" >&2
   exit 1
 fi
 echo "$health" | python3 -m json.tool 2>/dev/null || echo "$health"
@@ -83,4 +83,4 @@ fi
 echo
 echo "Doctor OK."
 echo "Hermes smoke (if hermes installed):"
-echo "  hermes chat -q 'Reply PONG' --provider construct-zero --model auto"
+echo "  ./construct-zero chat -q 'Reply PONG'"

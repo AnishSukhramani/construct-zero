@@ -4,7 +4,7 @@ Status key: **MVP** = shipped in repo | **Stub** = placeholder only | **Out of s
 
 | Feature | Status | Code | Doc |
 |---------|--------|------|-----|
-| Onboarding suite (`install.sh` + `init.sh`) | MVP | [install.sh](../../install.sh), [scripts/init.sh](../../scripts/init.sh) | [onboarding.md](onboarding.md) |
+| Onboarding suite (`install.sh` + `init.sh` + `./construct-zero`) | MVP | [install.sh](../../install.sh), [scripts/init.sh](../../scripts/init.sh), [construct-zero](../../construct-zero) | [onboarding.md](onboarding.md) |
 | Construct-Zero adapter (OpenAI façade) | MVP | [adapter/](../../adapter/) | [adapter-inference.md](adapter-inference.md) |
 | Cursor tool passthrough | MVP | [adapter/src/construct_zero/core/sessions.py](../../adapter/src/construct_zero/core/sessions.py) | [adapter-inference.md](adapter-inference.md) |
 | Hermes Construct-Zero provider plugin | MVP | [hermes-plugin/](../../hermes-plugin/) | [hermes-plugin.md](hermes-plugin.md) |

@@ -23,6 +23,8 @@ Usage: $0 [options]
 
 Interactive onboarding: Hermes clone, adapter venv, plugin, optional voice, start + doctor.
 
+Also available as: ./construct-zero init
+
 Options:
   --auto            Non-interactive; use defaults and env vars
   --voice           Enable voice setup (default off unless CZ_INIT_VOICE=1)
@@ -82,8 +84,12 @@ if [[ -n "$CURSOR_KEY" ]]; then
   cz_env_set CURSOR_API_KEY "$CURSOR_KEY"
 fi
 
-if [[ -z "${CURSOR_API_KEY:-}" && "$AUTO" != "1" ]]; then
-  key_input="$(cz_ask_secret "Cursor API key (Enter to skip)")"
+if [[ "$AUTO" != "1" ]]; then
+  if [[ -n "${CURSOR_API_KEY:-}" ]]; then
+    key_input="$(cz_ask_secret "Cursor API key" "keep")"
+  else
+    key_input="$(cz_ask_secret "Cursor API key" "skip")"
+  fi
   if [[ -n "$key_input" ]]; then
     export CURSOR_API_KEY="$key_input"
     cz_env_set CURSOR_API_KEY "$key_input"
@@ -161,15 +167,10 @@ if [[ "$DO_START" == "1" ]]; then
   cz_spin "Running doctor..." "$ROOT/scripts/doctor.sh"
 fi
 
-cat <<EOF
-
-Init complete.
-
-Next:
-  ./scripts/start.sh              # adapter (add --voice if voice was set up)
-  ./scripts/doctor.sh             # health check
-  .venvs/hermes/bin/hermes chat -q "hello" --provider construct-zero --model auto
-
-Hermes upstream: hermes/ (gitignored). Manual setup: ./scripts/setup.sh
-
-EOF
+echo
+cz_info "Init complete."
+if [[ -x "$ROOT/construct-zero" ]]; then
+  "$ROOT/construct-zero" help
+else
+  echo "Next: ./construct-zero help" >&2
+fi

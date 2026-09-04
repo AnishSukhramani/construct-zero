@@ -51,6 +51,7 @@ Full tree index: [docs/README.md](docs/README.md).
 | `hermes-plugin/` | Declarative Hermes Construct-Zero provider |
 | `docs/` | Agent knowledge base (this system) |
 | `scripts/` | init, setup, start, doctor, update |
+| `construct-zero` | Folder-local CLI (`start`, `doctor`, `init`, `chat`, `help`) |
 | `install.sh` | Curl cwd bootstrap (folder-isolated) |
 | `config/` | Examples + upstream lock pin |
 | `hermes/` | **Local only** — upstream clone (gitignored) |
@@ -63,7 +64,10 @@ Full tree index: [docs/README.md](docs/README.md).
 mkdir my-agent && cd my-agent
 curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main/install.sh | bash
 
-./scripts/init.sh                                      # already cloned
+./construct-zero init                                  # already cloned
+./construct-zero start && ./construct-zero doctor      # daily
+./construct-zero chat -q "hello"
+./construct-zero help                                  # command menu
 ./scripts/setup.sh && ./scripts/start-adapter.sh && ./scripts/doctor.sh   # manual path
 ./scripts/setup-voice.sh && ./scripts/start-voice.sh   # optional
 ```

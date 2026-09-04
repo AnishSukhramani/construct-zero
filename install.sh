@@ -13,7 +13,7 @@ usage() {
 Usage: install.sh [init-args...]
 
 Clone Construct-Zero into the current directory (must be empty), write
-folder-local config, and run ./scripts/init.sh.
+folder-local config, and run ./construct-zero init (scripts/init.sh).
 
 This directory becomes one isolated install. Repeat in another blank folder
 for a second stack (Hermes home, adapter state, and ports stay local).
@@ -68,4 +68,20 @@ echo "==> Isolating this install (Hermes + adapter state stay in this folder)"
 cz_apply_isolation "$INSTALL_DIR"
 
 echo "==> Starting onboarding"
-exec "$INSTALL_DIR/scripts/init.sh" "$@"
+if [[ -r /dev/tty ]]; then
+  "$INSTALL_DIR/scripts/init.sh" "$@" </dev/tty
+else
+  echo "==> No TTY — running non-interactive (--auto). Pass keys via env or --cursor-key."
+  _has_auto=0
+  for _arg in "$@"; do
+    if [[ "$_arg" == "--auto" ]]; then
+      _has_auto=1
+      break
+    fi
+  done
+  if [[ "$_has_auto" == "1" ]]; then
+    "$INSTALL_DIR/scripts/init.sh" "$@"
+  else
+    "$INSTALL_DIR/scripts/init.sh" --auto "$@"
+  fi
+fi

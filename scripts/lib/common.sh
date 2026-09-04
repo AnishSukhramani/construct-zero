@@ -68,15 +68,28 @@ cz_has_gum() {
   command -v gum >/dev/null 2>&1
 }
 
+# Prefer /dev/tty so curl | bash can still prompt. Empty if neither is usable.
+cz_tty() {
+  if [[ -r /dev/tty ]]; then
+    printf '%s\n' /dev/tty
+  elif [[ -t 0 ]]; then
+    printf '%s\n' /dev/stdin
+  fi
+}
+
 cz_is_interactive() {
-  [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" != "1" && -t 0 && -t 1 ]]
+  local tty
+  tty="$(cz_tty)"
+  [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" != "1" && -n "$tty" && -t 1 ]]
 }
 
 # ask_yn "Question?" default_yes|default_no  → prints yes/no to stdout
+# Empty Enter applies the default (skip answering). Does not use gum confirm
+# so the skip hint stays on the same line and curl | bash cannot steal stdin.
 cz_ask_yn() {
   local question="${1:?question required}"
   local default="${2:-yes}"
-  local prompt_suffix answer
+  local prompt_suffix skip_hint answer tty
 
   if [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" == "1" ]]; then
     if [[ "$default" == "yes" ]]; then
@@ -89,28 +102,18 @@ cz_ask_yn() {
 
   if [[ "$default" == "yes" ]]; then
     prompt_suffix="[Y/n]"
+    skip_hint="Press Enter to skip — default Yes"
   else
     prompt_suffix="[y/N]"
+    skip_hint="Press Enter to skip — default No"
   fi
 
-  if cz_has_gum; then
-    if [[ "$default" == "yes" ]]; then
-      if gum confirm "$question" --default=true --affirmative "Yes" --negative "No" >/dev/null 2>&1; then
-        printf 'yes\n'
-      else
-        printf 'no\n'
-      fi
-    else
-      if gum confirm "$question" --default=false --affirmative "Yes" --negative "No" >/dev/null 2>&1; then
-        printf 'yes\n'
-      else
-        printf 'no\n'
-      fi
-    fi
-    return 0
+  tty="$(cz_tty)"
+  if [[ -n "$tty" ]]; then
+    read -r -p "$question $prompt_suffix  ($skip_hint) " answer <"$tty" || true
+  else
+    answer=""
   fi
-
-  read -r -p "$question $prompt_suffix " answer || true
   answer="${answer:-}"
   if [[ -z "$answer" ]]; then
     printf '%s\n' "$default"
@@ -123,25 +126,32 @@ cz_ask_yn() {
   esac
 }
 
-# ask_secret "Prompt" → prints value to stdout (may be empty)
+# ask_secret "Prompt" [skip|keep] → prints value to stdout (may be empty)
+# skip = empty Enter returns empty; keep = prompt copy only (caller must not overwrite on empty).
 cz_ask_secret() {
-  local prompt="${1:-Cursor API key (Enter to skip)}"
-  local value=""
+  local prompt="${1:-Cursor API key}"
+  local empty_mode="${2:-skip}"
+  local hint value tty
 
   if [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" == "1" ]]; then
     printf '%s\n' "${CURSOR_API_KEY:-}"
     return 0
   fi
 
-  if cz_has_gum; then
-    value="$(gum input --password --placeholder "$prompt" 2>/dev/null || true)"
-    printf '%s\n' "$value"
-    return 0
+  if [[ "$empty_mode" == "keep" ]]; then
+    hint="Press Enter to keep the existing key"
+  else
+    hint="Press Enter to skip"
   fi
 
-  read -r -s -p "$prompt: " value || true
-  echo >&2
-  printf '%s\n' "$value"
+  tty="$(cz_tty)"
+  if [[ -n "$tty" ]]; then
+    read -r -s -p "$prompt  ($hint): " value <"$tty" || true
+    echo >&2
+  else
+    value=""
+  fi
+  printf '%s\n' "${value:-}"
 }
 
 cz_info() {

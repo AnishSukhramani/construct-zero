@@ -1,6 +1,6 @@
 # Onboarding suite
 
-**Status:** MVP — [`install.sh`](../../install.sh) + [`scripts/init.sh`](../../scripts/init.sh)
+**Status:** MVP — [`install.sh`](../../install.sh) + [`scripts/init.sh`](../../scripts/init.sh) + [`construct-zero`](../../construct-zero)
 
 ## Curl install (folder-isolated)
 
@@ -16,7 +16,8 @@ curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main
 1. Refuses a non-empty directory unless `./scripts/init.sh` already exists (resume)
 2. `git clone --depth 1` of this repo **into the current directory**
 3. Writes folder-local `.env` via [`scripts/lib/isolate.sh`](../../scripts/lib/isolate.sh): `HERMES_HOME`, `CZ_STATE_DIR`, PIDs/logs, free `CZ_PORT` / `CZ_VOICE_PORT`
-4. Runs `./scripts/init.sh`, which offers to install [uv](https://docs.astral.sh/uv/) (default yes) then the usual Y/N onboarding
+4. Runs `./scripts/init.sh` with stdin from `/dev/tty` when a TTY exists (so `curl | bash` can still ask questions). If there is no TTY, runs `--auto`.
+5. Init offers to install [uv](https://docs.astral.sh/uv/) (default yes), then Y/N onboarding and the API key slot. After success it runs `./construct-zero help`.
 
 Layout inside that folder:
 
@@ -32,10 +33,10 @@ Does not require PATH or Homebrew. Does not write `~/.hermes` or `~/.construct-z
 
 ## Interactive init
 
-[`scripts/init.sh`](../../scripts/init.sh) orchestrates existing scripts without replacing them.
+[`scripts/init.sh`](../../scripts/init.sh) (also `./construct-zero init`) orchestrates existing scripts without replacing them.
 
 1. Preflight (`git`, `python3`, `curl`; warns on missing `uv` / `ffmpeg`)
-2. Create `.env` from `.env.example` if missing; prompt for `CURSOR_API_KEY`
+2. Create `.env` from `.env.example` if missing; always prompt for `CURSOR_API_KEY` unless `--auto` (Enter keeps an existing key or skips)
 3. Y/N prompts (or `--auto` defaults):
    - Clone Hermes locally (default yes)
    - Set up voice (default no)
@@ -43,16 +44,37 @@ Does not require PATH or Homebrew. Does not write `~/.hermes` or `~/.construct-z
    - Start adapter + doctor (default yes)
    - Install uv if missing (default yes; `--no-uv` / `CZ_INIT_UV=0` to skip)
 4. Calls `./scripts/setup.sh` (with `--skip-hermes` if declined), optional `./scripts/setup-voice.sh`, `./scripts/start.sh`, `./scripts/doctor.sh`
+5. Prints the help home screen (`./construct-zero help`)
 
-Without `install.sh` (clone + `./scripts/init.sh`), adapter/Hermes still default to `~/.construct-zero` and `~/.hermes`.
+Without `install.sh` (clone + `./construct-zero init`), adapter/Hermes still default to `~/.construct-zero` and `~/.hermes`.
 
 ## Daily commands after init
 
 ```bash
-./scripts/start.sh
-./scripts/doctor.sh
-.venvs/hermes/bin/hermes chat -q "hello" --provider construct-zero --model auto
+./construct-zero help
+./construct-zero start              # adapter; add --voice for the sidecar
+./construct-zero doctor
+./construct-zero chat -q "hello"    # Hermes + --provider construct-zero (--model auto if omitted)
 ```
+
+Equivalents: `scripts/start.sh`, `scripts/doctor.sh`, `scripts/init.sh`.
+
+## CLI dispatcher
+
+Repo-root [`construct-zero`](../../construct-zero) is not installed on PATH. It resolves the install from its own path (not cwd).
+
+| Command | Action |
+|---------|--------|
+| `./construct-zero start` | [`scripts/start.sh`](../../scripts/start.sh) |
+| `./construct-zero start --voice` | Adapter plus voice sidecar |
+| `./construct-zero doctor` | [`scripts/doctor.sh`](../../scripts/doctor.sh) |
+| `./construct-zero init` | [`scripts/init.sh`](../../scripts/init.sh) |
+| `./construct-zero chat …` | `.venvs/hermes/bin/hermes chat` with `--provider construct-zero`; `--model auto` if `--model` omitted |
+| `./construct-zero help` | Banner + command menu (also ` --help`, `-h`, `/help`, or no args) |
+
+Unknown subcommands print help on stderr and exit 1. `start` / `doctor` / `chat` do not print the banner.
+
+Help UI: FIGlet-style wordmark plus the command table. Uses [gum](https://github.com/charmbracelet/gum) `style` when gum is installed and stdout is a TTY; otherwise the same text without a border.
 
 ## Manual path preserved
 
@@ -64,7 +86,7 @@ All legacy scripts work unchanged:
 
 ## Prompts
 
-Uses [gum](https://github.com/charmbracelet/gum) when installed; falls back to plain `read` / `[Y/n]`. Gum is optional.
+Y/N and API-key prompts read from `/dev/tty` so they work under `curl | bash`. Each line shows **Press Enter to skip** (empty Enter applies the Y/N default, or leaves the API key unset / unchanged). `--auto` / `CZ_AUTO=1` skips prompts. [gum](https://github.com/charmbracelet/gum) is optional (colored logs, spinners, help panel) — not used for Y/N, so the skip hint stays visible.
 
 ## Internal sandbox (not shipped)
 
