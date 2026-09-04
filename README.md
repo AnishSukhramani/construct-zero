@@ -26,7 +26,7 @@ You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 ## Requirements
 
 - Git, curl, Python 3.11+ (3.12 preferred)
-- [uv](https://github.com/astral-sh/uv) optional but recommended
+- [uv](https://docs.astral.sh/uv/) is offered during `install.sh` / `./scripts/init.sh` (recommended; no Homebrew required)
 - `CURSOR_API_KEY` from [Cursor dashboard](https://cursor.com/dashboard) → API Keys
 - Voice: `ffmpeg` (and often `espeak-ng` for Kokoro)
 

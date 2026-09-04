@@ -43,22 +43,16 @@ if [[ -d .venv ]] && [[ ! -x .venv/bin/python ]]; then
   echo "    Removing broken adapter .venv (missing bin/python)"
   rm -rf .venv
 fi
-if [[ ! -d .venv ]]; then
-  if command -v uv >/dev/null 2>&1; then
-    uv venv .venv --python 3.12 || uv venv .venv --python 3.11 || uv venv .venv
-    uv pip install -e ".[dev]" --python .venv/bin/python
-  else
-    python3 -m venv .venv
-    .venv/bin/pip install -U pip
-    .venv/bin/pip install -e ".[dev]"
-  fi
-else
-  if command -v uv >/dev/null 2>&1; then
-    uv pip install -e ".[dev]" --python .venv/bin/python
-  else
-    .venv/bin/pip install -e ".[dev]"
+if [[ -d .venv ]] && [[ ! -x .venv/bin/pip ]] && [[ ! -x .venv/bin/pip3 ]]; then
+  if ! cz_uv_bin >/dev/null; then
+    echo "    Removing adapter .venv without pip"
+    rm -rf .venv
   fi
 fi
+if [[ ! -d .venv ]]; then
+  cz_venv_create .venv
+fi
+cz_pip_editable .venv/bin/python ".[dev]"
 
 echo "==> Hermes CLI venv (for chat + voice bridge)"
 HERMES_VENV="$ROOT/.venvs/hermes"
@@ -71,20 +65,10 @@ elif [[ -d "$ROOT/hermes/.git" ]] || [[ -f "$ROOT/hermes/.git" ]]; then
   fi
   if [[ ! -x "$HERMES_VENV/bin/hermes" ]]; then
     mkdir -p "$ROOT/.venvs"
-    if command -v uv >/dev/null 2>&1; then
-      uv venv "$HERMES_VENV" --python 3.12 || uv venv "$HERMES_VENV" --python 3.11 || uv venv "$HERMES_VENV"
-      uv pip install -e "./hermes[all]" --python "$HERMES_VENV/bin/python"
-    else
-      python3 -m venv "$HERMES_VENV"
-      "$HERMES_VENV/bin/pip" install -U pip
-      "$HERMES_VENV/bin/pip" install -e "./hermes[all]"
-    fi
+    cz_venv_create "$HERMES_VENV"
+    cz_pip_editable "$HERMES_VENV/bin/python" "./hermes[all]"
   else
-    if command -v uv >/dev/null 2>&1; then
-      uv pip install -e "./hermes[all]" --python "$HERMES_VENV/bin/python"
-    else
-      "$HERMES_VENV/bin/pip" install -e "./hermes[all]"
-    fi
+    cz_pip_editable "$HERMES_VENV/bin/python" "./hermes[all]"
   fi
 else
   echo "    Skipped (no Hermes clone in hermes/)"

@@ -25,6 +25,7 @@ All scripts in [scripts/](../../scripts/). Run from repo root unless noted.
 | `--no-start` | Skip start + doctor at end |
 | `--skip-hermes` | Skip Hermes clone and Hermes CLI venv |
 | `--cursor-key KEY` | Set `CURSOR_API_KEY` (written to `.env`) |
+| `--no-uv` | Do not offer/install uv |
 
 ## setup.sh flags (additive; unflagged behavior unchanged)
 

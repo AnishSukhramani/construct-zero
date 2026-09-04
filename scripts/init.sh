@@ -30,6 +30,7 @@ Options:
   --no-start        Do not start services or run doctor at end
   --skip-hermes     Skip Hermes clone and Hermes CLI venv
   --cursor-key KEY  Set CURSOR_API_KEY (also written to .env)
+  --no-uv           Do not offer/install uv
   -h, --help        Show this help
 
 Env (with --auto):
@@ -37,6 +38,7 @@ Env (with --auto):
   CZ_INIT_START=0       Skip start + doctor
   CZ_INIT_HERMES=0      Skip Hermes clone
   CZ_INIT_HERMES_CONFIG=0  Skip Hermes config for this install
+  CZ_INIT_UV=0          Skip uv install
   CURSOR_API_KEY         Cursor API key
 
 Manual path still works: ./scripts/setup.sh, ./scripts/start-adapter.sh, etc.
@@ -50,6 +52,7 @@ while [[ $# -gt 0 ]]; do
     --no-voice) DO_VOICE=0; shift ;;
     --no-start) DO_START=0; shift ;;
     --skip-hermes) DO_HERMES=0; SKIP_HERMES_EXPLICIT=1; shift ;;
+    --no-uv) export CZ_INIT_UV=0; shift ;;
     --cursor-key)
       CURSOR_KEY="${2:?--cursor-key requires a value}"
       shift 2
@@ -131,6 +134,8 @@ else
     DO_START=0
   fi
 fi
+
+cz_ensure_uv
 
 # Core setup via existing script
 setup_args=()

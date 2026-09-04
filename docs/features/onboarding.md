@@ -16,7 +16,7 @@ curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main
 1. Refuses a non-empty directory unless `./scripts/init.sh` already exists (resume)
 2. `git clone --depth 1` of this repo **into the current directory**
 3. Writes folder-local `.env` via [`scripts/lib/isolate.sh`](../../scripts/lib/isolate.sh): `HERMES_HOME`, `CZ_STATE_DIR`, PIDs/logs, free `CZ_PORT` / `CZ_VOICE_PORT`
-4. Runs `./scripts/init.sh` (same Y/N onboarding as below)
+4. Runs `./scripts/init.sh`, which offers to install [uv](https://docs.astral.sh/uv/) (default yes) then the usual Y/N onboarding
 
 Layout inside that folder:
 
@@ -41,6 +41,7 @@ Does not require PATH or Homebrew. Does not write `~/.hermes` or `~/.construct-z
    - Set up voice (default no)
    - Write Hermes config for this install if missing (default yes)
    - Start adapter + doctor (default yes)
+   - Install uv if missing (default yes; `--no-uv` / `CZ_INIT_UV=0` to skip)
 4. Calls `./scripts/setup.sh` (with `--skip-hermes` if declined), optional `./scripts/setup-voice.sh`, `./scripts/start.sh`, `./scripts/doctor.sh`
 
 Without `install.sh` (clone + `./scripts/init.sh`), adapter/Hermes still default to `~/.construct-zero` and `~/.hermes`.

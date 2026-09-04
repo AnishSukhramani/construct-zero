@@ -3,6 +3,11 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export CZ_ROOT="$ROOT"
+# shellcheck source=lib/common.sh
+source "$ROOT/scripts/lib/common.sh"
+cz_load_env
+
 VPL="$ROOT/vpl"
 VOICE="$ROOT/voice"
 VENV="$ROOT/.venvs/voice"
@@ -14,22 +19,13 @@ if [[ -d "$VENV" ]] && [[ ! -x "$VENV/bin/python" ]]; then
   echo "    Removing broken voice venv (missing bin/python)"
   rm -rf "$VENV"
 fi
-if command -v uv >/dev/null 2>&1; then
-  if [[ ! -d "$VENV" ]]; then
-    uv venv "$VENV" --python 3.12 || uv venv "$VENV" --python 3.11 || uv venv "$VENV"
-  fi
-  echo "==> Installing construct-zero-vpl (editable)"
-  uv pip install -e "${VPL}[dev]" --python "$VENV/bin/python"
-  echo "==> Installing construct-zero-voice (editable)"
-  uv pip install -e "${VOICE}[dev]" --python "$VENV/bin/python"
-else
-  if [[ ! -d "$VENV" ]]; then
-    python3 -m venv "$VENV"
-  fi
-  "$VENV/bin/pip" install -U pip
-  "$VENV/bin/pip" install -e "${VPL}[dev]"
-  "$VENV/bin/pip" install -e "${VOICE}[dev]"
+if [[ ! -d "$VENV" ]]; then
+  cz_venv_create "$VENV"
 fi
+echo "==> Installing construct-zero-vpl (editable)"
+cz_pip_editable "$VENV/bin/python" "${VPL}[dev]"
+echo "==> Installing construct-zero-voice (editable)"
+cz_pip_editable "$VENV/bin/python" "${VOICE}[dev]"
 
 echo "==> Checking ffmpeg (required for many MediaRecorder formats)"
 if command -v ffmpeg >/dev/null 2>&1; then

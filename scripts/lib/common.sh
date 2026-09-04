@@ -179,14 +179,110 @@ cz_preflight() {
       missing=1
     fi
   done
-  if ! command -v uv >/dev/null 2>&1; then
-    cz_warn "uv not found — setup will use python3 -m venv (slower)"
-  fi
   if ! command -v ffmpeg >/dev/null 2>&1; then
-    cz_warn "ffmpeg not found — voice STT may be limited until installed"
+    cz_warn "ffmpeg not found — voice STT may be limited until installed (e.g. brew install ffmpeg)"
   fi
   if (( missing )); then
     return 1
+  fi
+}
+
+# Prefer uv on PATH, then common install locations.
+cz_uv_bin() {
+  export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:${PATH}"
+  if command -v uv >/dev/null 2>&1; then
+    command -v uv
+    return 0
+  fi
+  local p
+  for p in "${HOME}/.local/bin/uv" "${HOME}/.cargo/bin/uv"; do
+    if [[ -x "$p" ]]; then
+      printf '%s\n' "$p"
+      return 0
+    fi
+  done
+  return 1
+}
+
+cz_python() {
+  local c
+  for c in python3.12 python3.11 python3; do
+    if command -v "$c" >/dev/null 2>&1; then
+      printf '%s\n' "$c"
+      return 0
+    fi
+  done
+  echo "No python3 found" >&2
+  return 1
+}
+
+cz_install_uv() {
+  cz_info "Installing uv (https://docs.astral.sh/uv/)"
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:${PATH}"
+  if ! cz_uv_bin >/dev/null; then
+    echo "uv install finished but the binary was not found. Add ~/.local/bin to PATH and re-run." >&2
+    return 1
+  fi
+}
+
+# Offer official uv installer when missing. --auto installs unless CZ_INIT_UV=0.
+cz_ensure_uv() {
+  export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:${PATH}"
+  if cz_uv_bin >/dev/null; then
+    return 0
+  fi
+  local do_install=yes
+  if [[ "${CZ_AUTO:-${HCX_AUTO:-0}}" == "1" ]]; then
+    [[ "${CZ_INIT_UV:-1}" == "0" ]] && do_install=no
+  else
+    if [[ "$(cz_ask_yn "Install uv? (recommended Python installer, one binary)" "yes")" != "yes" ]]; then
+      do_install=no
+    fi
+  fi
+  if [[ "$do_install" == "yes" ]]; then
+    cz_install_uv
+  else
+    cz_warn "Skipping uv — will try python3.12 / python3.11 / python3"
+  fi
+}
+
+cz_venv_create() {
+  local dest="${1:?venv path required}"
+  local uvbin py
+  export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:${PATH}"
+  if uvbin="$(cz_uv_bin)"; then
+    "$uvbin" venv "$dest" --python 3.12 || "$uvbin" venv "$dest" --python 3.11 || "$uvbin" venv "$dest"
+    return 0
+  fi
+  py="$(cz_python)"
+  if ! "$py" -m venv "$dest"; then
+    echo "Failed to create venv with $py (ensurepip often fails on Python 3.14)." >&2
+    echo "Install uv and re-run:" >&2
+    echo "  curl -LsSf https://astral.sh/uv/install.sh | sh" >&2
+    echo "  ./scripts/init.sh" >&2
+    rm -rf "$dest"
+    return 1
+  fi
+  if [[ ! -x "$dest/bin/pip" && ! -x "$dest/bin/pip3" ]]; then
+    echo "venv has no pip. Install uv and re-run:" >&2
+    echo "  curl -LsSf https://astral.sh/uv/install.sh | sh" >&2
+    rm -rf "$dest"
+    return 1
+  fi
+}
+
+# cz_pip_editable <python> <pip -e args...>
+cz_pip_editable() {
+  local py="${1:?python required}"
+  local uvbin
+  shift
+  export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:${PATH}"
+  if uvbin="$(cz_uv_bin)"; then
+    "$uvbin" pip install -e "$@" --python "$py"
+  else
+    "$py" -m pip install -U pip
+    "$py" -m pip install -e "$@"
   fi
 }
 
