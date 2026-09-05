@@ -10,7 +10,12 @@ curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main
 
 ---
 
-[![Watch the video](https://youtube.com)](https://youtu.be/wUiOjHTjId0)
+<p align="center">
+  <a href="https://youtu.be/wUiOjHTjId0" target="_blank">
+    <img width="800" height="450" alt="Construct Zero Demo Preview" src="https://github.com/user-attachments/assets/76136777-bf18-4b97-b109-41828b80b87a" />
+  </a>
+</p>
+
 
 ---
 
