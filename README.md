@@ -1,6 +1,10 @@
-<div align="center">
+<p align="center">
 
-# construct-zero
+<img width="667" height="92" alt="Screenshot 2026-09-06 at 12 24 27 AM" src="https://github.com/user-attachments/assets/91ba2488-a55a-4f5f-bd4e-2b50f549b56f" />
+
+</p>
+
+<div align="center">
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main/install.sh | bash
