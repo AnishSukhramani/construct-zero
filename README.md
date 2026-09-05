@@ -1,73 +1,52 @@
-# Construct-Zero
+<div align="center">
 
-Run [Hermes Agent](https://github.com/NousResearch/hermes-agent) at full capability while **Cursor subscription pays for inference** (`auto` and other Cursor models). No OpenRouter / OpenAI / Ollama required for the main path.
+# construct-zero
 
-## Invariant
+```bash
+curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main/install.sh | bash
+```
 
-Hermes owns the agent loop and all tools. Construct-Zero is an **inference-only** OpenAI-compatible adapter on `127.0.0.1:8765`. Cursor driver mode stays `ask` — never a second agent brain.
+</div>
+
+---
+
+Hermes Agent at full capability. Cursor subscription pays for inference.
+
+After install:
+
+```bash
+./construct-zero start
+./construct-zero chat
+```
+
+`hermes` is not on PATH. Use `./construct-zero chat`. Run the curl in an **empty folder**. Each folder is its own install.
+
+## What it is
+
+Hermes owns the agent loop and all tools. Construct-Zero is an **inference-only** OpenAI-compatible adapter on `127.0.0.1:8765`. Cursor driver mode stays `ask` — never a second agent brain. No OpenRouter / OpenAI / Ollama key for the main path.
 
 ```text
 You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 ```
 
-## Repo layout
+```bash
+./construct-zero help               # command menu
+./construct-zero start --voice      # adapter + voice page
+./construct-zero doctor
+```
 
-| Path | Role |
-|------|------|
-| `hermes/` | **Local only** — Hermes upstream clone (gitignored; created by `./scripts/setup.sh`) |
-| [`adapter/`](adapter/) | **Construct-Zero** FastAPI adapter (`construct_zero` package) |
-| [`voice/`](voice/) | Hold-to-talk sidecar (STT/TTS + Hermes bridge) on `:8767` |
-| [`vpl/`](vpl/) | Voice Presentation Layer (`construct-zero-vpl`) — layered spoken delivery, zero extra LLM |
-| [`hermes-plugin/model-providers/construct-zero/`](hermes-plugin/model-providers/construct-zero/) | Declarative Hermes provider |
-| [`config/upstream.lock.yaml`](config/upstream.lock.yaml) | Recommended Hermes git pin |
-| [`config/construct-zero.yaml.example`](config/construct-zero.yaml.example) | Adapter config |
-| [`construct-zero`](construct-zero) | Folder-local CLI (`start`, `doctor`, `init`, `chat`, `help`) |
-| [`scripts/`](scripts/) | init, install, setup, start, doctor, update, voice |
+`scripts/start.sh`, `scripts/doctor.sh`, and `scripts/init.sh` still work.
 
 ## Requirements
 
 - Git, curl, Python 3.11+ (3.12 preferred)
-- [uv](https://docs.astral.sh/uv/) is offered during `install.sh` / `./construct-zero init` (recommended; no Homebrew required)
+- [uv](https://docs.astral.sh/uv/) is offered during install (recommended; no Homebrew required)
 - `CURSOR_API_KEY` from [Cursor dashboard](https://cursor.com/dashboard) → API Keys
 - Voice: `ffmpeg` (and often `espeak-ng` for Kokoro)
 
-## Quick start
+Already cloned: `./construct-zero init`
 
-Each folder is its own install (Hermes home, adapter state, and ports stay inside that directory).
-
-```bash
-mkdir my-agent && cd my-agent
-curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main/install.sh | bash
-```
-
-That clones this repo into the current folder, asks a few setup questions (Y/N and API key; press Enter to skip any of them), then shows `./construct-zero help`. It does not touch other Construct-Zero copies on the same machine.
-
-Contributor / already-cloned path:
-
-```bash
-git clone https://github.com/AnishSukhramani/construct-zero.git
-cd construct-zero
-./construct-zero init
-
-# Or manual:
-cp .env.example .env   # edit CURSOR_API_KEY
-export CURSOR_API_KEY=crsr_...
-./scripts/setup.sh
-./scripts/start-adapter.sh
-./scripts/doctor.sh
-```
-
-After init, daily use (`./construct-zero help` reprints the menu):
-
-```bash
-./construct-zero start              # adapter (+ --voice if set up)
-./construct-zero chat               # talk to Hermes (not a global "hermes" command)
-./construct-zero doctor
-```
-
-`scripts/start.sh`, `scripts/doctor.sh`, and `scripts/init.sh` still work. `chat` runs the local Hermes CLI with `--provider construct-zero` and `--model auto` if you omit `--model`.
-
-Hermes config for a cwd install lives in `.hermes/config.yaml` inside that folder (`base_url` uses the port written to `.env`). Global default remains `~/.hermes/config.yaml` when you run `./construct-zero init` without `install.sh`:
+Hermes config for a cwd install lives in `.hermes/config.yaml` (`base_url` uses the port in `.env`). Global default remains `~/.hermes/config.yaml` when you init without `install.sh`:
 
 ```yaml
 model:
@@ -75,6 +54,19 @@ model:
   default: auto
   base_url: http://127.0.0.1:8765/v1
 ```
+
+## Repo layout
+
+| Path | Role |
+|------|------|
+| `hermes/` | **Local only** — Hermes upstream clone (gitignored; created by setup) |
+| [`adapter/`](adapter/) | Construct-Zero FastAPI adapter (`construct_zero`) |
+| [`voice/`](voice/) | Hold-to-talk sidecar (STT/TTS + Hermes bridge) on `:8767` |
+| [`vpl/`](vpl/) | Voice Presentation Layer — layered spoken delivery, zero extra LLM |
+| [`hermes-plugin/model-providers/construct-zero/`](hermes-plugin/model-providers/construct-zero/) | Declarative Hermes provider |
+| [`config/upstream.lock.yaml`](config/upstream.lock.yaml) | Recommended Hermes git pin |
+| [`construct-zero`](construct-zero) | Folder-local CLI (`start`, `doctor`, `init`, `chat`, `help`) |
+| [`scripts/`](scripts/) | init, setup, start, doctor, update, voice |
 
 ## Adapter API
 
@@ -91,28 +83,24 @@ Future backends implement `InferenceBackend` (`adapter/src/construct_zero/core/b
 
 ## Voice (hold-to-talk)
 
-Browser push-to-talk on `127.0.0.1:8767` — press and hold to speak, release to send. Uses local **faster-whisper** (STT) + **Kokoro** (TTS), then `hermes chat -q` via Construct-Zero. Does not replace Hermes CLI `/voice` (Ctrl+B); this is the web / VPS-friendly path.
+Browser push-to-talk on `127.0.0.1:8767` — press and hold to speak, release to send. Local **faster-whisper** (STT) + **Kokoro** (TTS), then Hermes via Construct-Zero. Does not replace Hermes CLI `/voice` (Ctrl+B).
 
-**Layered delivery (VPL):** Long Hermes replies are parsed extractively by [`vpl/`](vpl/) (`construct-zero-vpl`). The full markdown answer stays on screen unchanged; TTS speaks orient → map → deepen layers using verbatim source spans. Navigation turns (`second`, bucket names, `read all`, etc.) reuse the stored session and **do not call Hermes again**. Short answers pass through unchanged.
+**Layered delivery (VPL):** Long replies are parsed extractively by [`vpl/`](vpl/). The full markdown answer stays on screen; TTS speaks orient → map → deepen from verbatim source spans. Navigation turns reuse the stored session and **do not call Hermes again**.
 
 ```bash
-# Adapter must already be up
-./scripts/start-adapter.sh
-
-./scripts/setup-voice.sh   # installs vpl + voice editable
-./scripts/start-voice.sh
-# open http://127.0.0.1:8767/
+./construct-zero start --voice
+# open the URL that is printed
 ```
 
 Optional VPL env vars (see `.env.example`): `CZ_VPL_ENABLED`, `CZ_VPL_LAYER_THRESHOLD_ITEMS`, `CZ_VPL_MAX_BUCKETS`, `CZ_VPL_PASSTHROUGH_MAX_WORDS`, `CZ_VPL_SESSION_TTL_SEC`.
 
-Requires `ffmpeg` (and often `espeak-ng` for Kokoro). First run downloads Whisper + Kokoro weights. On a VPS, keep the sidecar on loopback and tunnel:
+First run downloads Whisper + Kokoro weights. On a VPS, keep the sidecar on loopback and tunnel:
 
 ```bash
 ssh -L 8767:127.0.0.1:8767 user@vps
 ```
 
-See [`config/voice.profile.yaml.example`](config/voice.profile.yaml.example) for optional Hermes TTS wiring to the sidecar.
+See [`config/voice.profile.yaml.example`](config/voice.profile.yaml.example) for optional Hermes TTS wiring.
 
 ## Updating
 
@@ -131,7 +119,7 @@ git pull
 
 After `git pull`, if [`config/upstream.lock.yaml`](config/upstream.lock.yaml) changed, run `./scripts/update-hermes.sh` to match the new pin.
 
-Hermes runtime data (skills, memory, config) stays in `~/.hermes` — separate from the upstream clone in `hermes/`.
+Hermes runtime data (skills, memory, config) stays in `~/.hermes` unless this folder was isolated by `install.sh` (then `.hermes/` inside the folder).
 
 ## Tests
 
@@ -147,17 +135,17 @@ cd ../voice && source ../.venvs/voice/bin/activate && pytest -q
 
 ## Success criteria (MVP)
 
-1. No external LLM API key for main Hermes chat  
-2. Hermes tools work via Cursor Auto (tool passthrough)  
-3. Hermes updatable via `./scripts/update-hermes.sh` without rewriting Construct-Zero  
-4. Owned surface: OpenAI façade + CursorDriver + Hermes plugin + doctor/harness  
+1. No external LLM API key for main Hermes chat
+2. Hermes tools work via Cursor Auto (tool passthrough)
+3. Hermes updatable via `./scripts/update-hermes.sh` without rewriting Construct-Zero
+4. Owned surface: OpenAI façade + CursorDriver + Hermes plugin + doctor/harness
 
 ## Out of scope (for now)
 
-- Depending on `cursor-api-proxy` as runtime  
-- Claude Code driver implementation  
-- Public exposure of the adapter port  
-- Cursor Cloud / iOS profiles  
+- Depending on `cursor-api-proxy` as runtime
+- Claude Code driver implementation
+- Public exposure of the adapter port
+- Cursor Cloud / iOS profiles
 
 ## Migration from HCX
 
