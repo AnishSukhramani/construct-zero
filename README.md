@@ -10,6 +10,10 @@ curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main
 
 ---
 
+[![Watch the video](https://youtube.com)](https://youtu.be/wUiOjHTjId0)
+
+---
+
 Hermes Agent at full capability. Cursor subscription pays for inference.
 
 After install:
