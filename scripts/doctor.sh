@@ -78,7 +78,7 @@ fi
 
 if [[ "${CZ_DOCTOR_CHAT:-${HCX_DOCTOR_CHAT:-1}}" == "1" ]]; then
   if [[ -z "${CURSOR_API_KEY:-}" ]]; then
-    _doctor_fail "chat smoke skipped — CURSOR_API_KEY required (set CZ_DOCTOR_CHAT=0 to disable)"
+    echo "==> POST chat.completions — skipped (no CURSOR_API_KEY)"
   elif [[ -n "$health" && "$status" == "ok" ]]; then
     echo "==> POST chat.completions (non-stream)"
     chat_ok=0
