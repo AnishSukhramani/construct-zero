@@ -15,7 +15,7 @@ Daily entrypoint is repo-root [`construct-zero`](../../construct-zero) (`./const
 | `start-adapter.sh` | Construct-Zero on loopback with supervisor | Called by `./construct-zero start` |
 | `start-voice.sh` | Voice sidecar (port from `CZ_VOICE_PORT`, default `:8767`) | After adapter up; optional |
 | `setup-voice.sh` | Voice venv + deps | Once before first voice use |
-| `doctor.sh` | `/health`, models, optional chat smoke; Hermes pin hint | After config changes; debugging (`./construct-zero doctor`) |
+| `doctor.sh` | Fails on missing `CURSOR_API_KEY`, bad `:8765` health, models/chat smoke, Hermes pin drift, or Hermes config mismatch | After config changes; debugging (`./construct-zero doctor`) |
 | `lib/help.sh` / `lib/help_ui.py` | Help home screen (pyfiglet + Rich) | Sourced/launched by the dispatcher; not run directly |
 
 ## init.sh flags

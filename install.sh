@@ -49,7 +49,7 @@ else
     exit 1
   fi
   rm -f "$INSTALL_DIR/.DS_Store"
-  echo "==> Cloning Construct-Zero into $INSTALL_DIR"
+  echo "==> Cloning Construct-Zero into $INSTALL_DIR (this folder only — not your home directory)"
   git clone --depth 1 "$CZ_INSTALL_REPO" "$INSTALL_DIR"
 fi
 
@@ -64,10 +64,12 @@ source "$INSTALL_DIR/scripts/lib/common.sh"
 # shellcheck source=scripts/lib/isolate.sh
 source "$INSTALL_DIR/scripts/lib/isolate.sh"
 
-echo "==> Isolating this install (Hermes + adapter state stay in this folder)"
+echo "==> Isolating this install (.hermes/, .construct-zero/, .env stay in this folder)"
 cz_apply_isolation "$INSTALL_DIR"
 
 echo "==> Starting onboarding"
+echo "    You will be asked for CURSOR_API_KEY (Cursor dashboard → API Keys)."
+echo "    The key is saved to .env here only — never committed to git."
 if [[ -r /dev/tty ]]; then
   "$INSTALL_DIR/scripts/init.sh" "$@" </dev/tty
 else

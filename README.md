@@ -27,7 +27,9 @@ Click for Quick Setup Guide
 
 ---
 
-Hermes Agent at full capability. Cursor subscription pays for inference.
+**Hermes Agent at full capability. Your Cursor subscription pays for inference.**
+
+You bring a **`CURSOR_API_KEY`** from the [Cursor dashboard](https://cursor.com/dashboard) → API Keys. Inference is billed through your Cursor plan — not a separate OpenRouter/OpenAI key, and not “free Hermes” or unlimited Auto for teams/marketplace.
 
 After install:
 
@@ -40,7 +42,12 @@ After install:
 
 ## What it is
 
-Hermes owns the agent loop and all tools. Construct-Zero is an **inference-only** OpenAI-compatible adapter on `127.0.0.1:8765`. Cursor driver mode stays `ask` — never a second agent brain. No OpenRouter / OpenAI / Ollama key for the main path.
+| Piece | Role |
+|-------|------|
+| **[Hermes Agent](https://github.com/NousResearch/hermes-agent)** | Owns the agent loop, terminal, tools, memory, and gateway |
+| **Construct-Zero** | Local OpenAI-compatible **inference adapter** on `127.0.0.1:8765` — routes chat to Cursor cloud models via the official **`cursor-sdk`** in **`ask`** mode (not a second agent brain) |
+
+Hermes talks to Construct-Zero like any OpenAI-compatible provider. Construct-Zero does not run Hermes’s tools; it forwards model calls and parks tool calls so **Hermes executes** them. No OpenRouter / OpenAI / Ollama API key on the main path — only **`CURSOR_API_KEY`** for Cursor inference.
 
 ```text
 You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
@@ -58,7 +65,7 @@ You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 
 - Git, curl, Python 3.11+ (3.12 preferred)
 - [uv](https://docs.astral.sh/uv/) is offered during install (recommended; no Homebrew required)
-- `CURSOR_API_KEY` from [Cursor dashboard](https://cursor.com/dashboard) → API Keys
+- **`CURSOR_API_KEY`** (required) — create in [Cursor dashboard](https://cursor.com/dashboard) → API Keys; stored locally in `.env` (gitignored). Usage counts against your Cursor subscription/plan.
 - Voice: `ffmpeg` (and often `espeak-ng` for Kokoro)
 
 Already cloned: `./construct-zero init`
@@ -93,7 +100,7 @@ model:
 | `GET /v1/models` | Models from `Cursor.models.list()` |
 | `POST /v1/chat/completions` | Chat (+ tools, stream) |
 
-**Phase 1:** text chat via `cursor-sdk` with `tools=[]` (no Cursor built-in tools).  
+**Phase 1:** text chat via official **`cursor-sdk`** with `tools=[]` (no Cursor built-in tools). Driver mode is **`ask`** only.  
 **Phase 2:** Hermes `tools` exposed as SDK `custom_tools`; calls are parked and returned as OpenAI `tool_calls` so **Hermes executes** them; tool results resume the same run.
 
 Future backends implement `InferenceBackend` (`adapter/src/construct_zero/core/backend.py`). `ClaudeCodeDriver` is a stub.
@@ -152,10 +159,10 @@ cd ../voice && source ../.venvs/voice/bin/activate && pytest -q
 
 ## Success criteria (MVP)
 
-1. No external LLM API key for main Hermes chat
-2. Hermes tools work via Cursor Auto (tool passthrough)
+1. Main Hermes chat uses **`CURSOR_API_KEY`** only (no OpenRouter/OpenAI/Ollama key on the default path)
+2. Hermes tools work via Cursor model **`auto`** and tool passthrough through the adapter
 3. Hermes updatable via `./scripts/update-hermes.sh` without rewriting Construct-Zero
-4. Owned surface: OpenAI façade + CursorDriver + Hermes plugin + doctor/harness
+4. Owned surface: OpenAI façade + Cursor SDK driver + Hermes plugin + `./construct-zero doctor`
 
 ## Out of scope (for now)
 

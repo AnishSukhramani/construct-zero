@@ -85,10 +85,16 @@ if [[ -n "$CURSOR_KEY" ]]; then
 fi
 
 if [[ "$AUTO" != "1" ]]; then
+  echo
+  cz_info "Cursor API key (required for inference)"
+  echo "  Create one at: https://cursor.com/dashboard → API Keys" >&2
+  echo "  Inference is billed through your Cursor subscription/plan." >&2
+  echo "  Stored locally in: $ROOT/.env (gitignored)" >&2
+  echo
   if [[ -n "${CURSOR_API_KEY:-}" ]]; then
-    key_input="$(cz_ask_secret "Cursor API key" "keep")"
+    key_input="$(cz_ask_secret "Paste CURSOR_API_KEY" "keep")"
   else
-    key_input="$(cz_ask_secret "Cursor API key" "skip")"
+    key_input="$(cz_ask_secret "Paste CURSOR_API_KEY" "skip")"
   fi
   if [[ -n "$key_input" ]]; then
     export CURSOR_API_KEY="$key_input"
@@ -111,7 +117,8 @@ if [[ "$AUTO" == "1" ]]; then
   [[ "${CZ_INIT_HERMES_CONFIG:-${HCX_INIT_HERMES_CONFIG:-1}}" == "0" ]] && DO_HERMES_CONFIG=0
 else
   echo
-  cz_info "Construct-Zero — setup"
+  cz_info "Construct-Zero — setup (folder: $ROOT)"
+  echo "  Each install is isolated to this directory when you used install.sh." >&2
   echo
 
   if [[ "$SKIP_HERMES_EXPLICIT" != "1" ]]; then

@@ -17,7 +17,8 @@ curl -fsSL https://raw.githubusercontent.com/AnishSukhramani/construct-zero/main
 2. `git clone --depth 1` of this repo **into the current directory**
 3. Writes folder-local `.env` via [`scripts/lib/isolate.sh`](../../scripts/lib/isolate.sh): `HERMES_HOME`, `CZ_STATE_DIR`, PIDs/logs, free `CZ_PORT` / `CZ_VOICE_PORT`
 4. Runs `./scripts/init.sh` with stdin from `/dev/tty` when a TTY exists (so `curl | bash` can still ask questions). If there is no TTY, runs `--auto`.
-5. Init offers to install [uv](https://docs.astral.sh/uv/) (default yes), then Y/N onboarding and the API key slot. After success it runs `./construct-zero help`.
+5. Prints a short note that **`CURSOR_API_KEY`** (Cursor dashboard → API Keys) will be prompted and saved to folder-local `.env` only.
+6. Init offers to install [uv](https://docs.astral.sh/uv/) (default yes), then Y/N onboarding and the API key slot. After success it runs `./construct-zero help`.
 
 Layout inside that folder:
 
@@ -36,7 +37,7 @@ Does not require PATH or Homebrew. Does not write `~/.hermes` or `~/.construct-z
 [`scripts/init.sh`](../../scripts/init.sh) (also `./construct-zero init`) orchestrates existing scripts without replacing them.
 
 1. Preflight (`git`, `python3`, `curl`; warns on missing `uv` / `ffmpeg`)
-2. Create `.env` from `.env.example` if missing; always prompt for `CURSOR_API_KEY` unless `--auto` (Enter keeps an existing key or skips)
+2. Create `.env` from `.env.example` if missing; interactive mode explains where to create **`CURSOR_API_KEY`** (Cursor dashboard) and that inference is billed via the user’s Cursor plan. Prompt unless `--auto` (Enter keeps an existing key or skips).
 3. Y/N prompts (or `--auto` defaults):
    - Clone Hermes locally (default yes)
    - Set up voice (default no)
