@@ -73,7 +73,7 @@ dirty_files: []
 """
 
 
-def _atomic_write(path: Path, content: str) -> None:
+def atomic_write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(content, encoding="utf-8")
@@ -149,7 +149,7 @@ class CzStore:
             for name, default in specs.items():
                 path = self.root / name
                 if not path.exists():
-                    _atomic_write(path, default)
+                    atomic_write(path, default)
                     created.append(str(path.relative_to(self.project)))
             for sub in ("handoffs", "channel"):
                 d = self.root / sub
@@ -178,11 +178,11 @@ class CzStore:
                         block = cur.body + "\n\n---\n\n"
                         if conflict_path.exists():
                             block = conflict_path.read_text(encoding="utf-8") + "\n" + block
-                        _atomic_write(conflict_path, block)
+                        atomic_write(conflict_path, block)
                         warnings.append(
                             f"Memory entry {eid} changed concurrently; copy saved to MEMORY.conflicts.md"
                         )
-            _atomic_write(self.root / "MEMORY.md", text)
+            atomic_write(self.root / "MEMORY.md", text)
         return warnings
 
     def memory_add(

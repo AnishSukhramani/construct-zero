@@ -35,5 +35,5 @@ By default `.cz/` is listed in `.git/info/exclude` (not `.gitignore`). Use `home
 ## Related
 
 - [PRD shared context home](../plans/active/README.md) (Anish, Oct 2026)
-- Handoff MVP: `construct-zero run`, `construct-zero handoff` (PR 19)
+- Handoff MVP: `construct-zero run <agent> [--auto-handoff]`, `construct-zero handoff --to <agent> [--no-launch]` (Preview)
 - Usage caps and kill switch (PR 20)
