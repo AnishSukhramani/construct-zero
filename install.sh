@@ -35,7 +35,14 @@ for cmd in git curl python3; do
 done
 
 _non_dot_entries() {
-  ls -A "$INSTALL_DIR" 2>/dev/null | grep -v '^\.DS_Store$' || true
+  local entry
+  for entry in "$INSTALL_DIR"/* "$INSTALL_DIR"/.[!.]* "$INSTALL_DIR"/..?*; do
+    [[ -e "$entry" ]] || continue
+    local base
+    base="$(basename "$entry")"
+    [[ "$base" == ".DS_Store" ]] && continue
+    printf '%s\n' "$base"
+  done
 }
 
 if [[ -f "$INSTALL_DIR/scripts/init.sh" ]]; then

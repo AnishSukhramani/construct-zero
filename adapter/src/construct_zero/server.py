@@ -5,10 +5,11 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 
 from construct_zero import __version__
 from construct_zero.config import CZConfig, load_config
@@ -68,9 +69,7 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
     def list_models(request: Request) -> ModelsListResponse:
         ids = request.app.state.backend.list_models()
         now = int(time.time())
-        return ModelsListResponse(
-            data=[ModelCard(id=mid, created=now) for mid in ids]
-        )
+        return ModelsListResponse(data=[ModelCard(id=mid, created=now) for mid in ids])
 
     @app.post("/v1/chat/completions", dependencies=[Depends(require_auth)])
     def chat_completions(body: ChatCompletionRequest, request: Request):
@@ -126,9 +125,7 @@ def _to_openai_response(
         id=f"chatcmpl-{uuid.uuid4().hex[:24]}",
         created=int(time.time()),
         model=model,
-        choices=[
-            ChatCompletionChoice(index=0, message=message, finish_reason=finish)
-        ],
+        choices=[ChatCompletionChoice(index=0, message=message, finish_reason=finish)],
         usage=result.usage,
     )
 

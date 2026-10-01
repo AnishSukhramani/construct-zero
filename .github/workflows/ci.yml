@@ -78,6 +78,47 @@ jobs:
       - name: Matrix summary
         run: echo "All package matrix jobs passed."
 
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+      - name: Ruff
+        run: |
+          cd adapter && uv sync --locked --extra dev
+          uv run ruff check ../adapter ../vpl ../voice ../hermes-plugin ../tests
+
+  types:
+    name: types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+      - name: mypy
+        run: |
+          cd adapter && uv sync --locked --extra dev && uv run mypy
+          cd ..
+          uv run --project adapter mypy --config-file vpl/mypy.ini
+          uv run --project adapter mypy --config-file voice/mypy.ini
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: shellcheck
+        run: |
+          shellcheck install.sh construct-zero scripts/*.sh scripts/lib/*.sh
+
   guardrails:
     name: guardrails
     runs-on: ubuntu-latest

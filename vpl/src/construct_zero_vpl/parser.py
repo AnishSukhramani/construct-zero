@@ -106,9 +106,8 @@ def parse_document(full_text: str, config: VplConfig | None = None) -> SpeechDoc
     intro = "\n".join(intro_lines).strip()
     layered = False
     if config.enabled:
-        if len(items) >= config.layer_threshold_items:
-            layered = True
-        elif _word_count(text) > config.passthrough_max_words and len(items) >= 3:
+        long_doc = _word_count(text) > config.passthrough_max_words and len(items) >= 3
+        if len(items) >= config.layer_threshold_items or long_doc:
             layered = True
 
     return SpeechDocument(

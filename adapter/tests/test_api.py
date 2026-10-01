@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import json
 
-from fastapi.testclient import TestClient
-
+import pytest
 from construct_zero.config import CZConfig, load_config
 from construct_zero.core.backend import CompletionResult, HealthStatus, StreamChunk
-from construct_zero.core.sessions import SessionStore, ToolLoopSession
+from construct_zero.core.sessions import SessionStore
 from construct_zero.drivers.claude_code import ClaudeCodeDriver
 from construct_zero.openai_types import ChatCompletionRequest, ChatMessage
 from construct_zero.server import create_app
+from fastapi.testclient import TestClient
 
 
 class FakeBackend:
@@ -109,13 +109,10 @@ def test_tool_loop_session_park_and_deliver():
 def test_claude_code_stub():
     drv = ClaudeCodeDriver()
     assert drv.health().ok is False
-    try:
+    with pytest.raises(NotImplementedError):
         drv.complete(
             ChatCompletionRequest(messages=[ChatMessage(role="user", content="hi")])
         )
-        assert False, "expected NotImplementedError"
-    except NotImplementedError:
-        pass
 
 
 def test_health_and_models_and_chat(monkeypatch):

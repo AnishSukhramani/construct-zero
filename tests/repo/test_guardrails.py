@@ -50,9 +50,7 @@ def test_src_without_tests_passes_with_label(tmp_path: Path) -> None:
     subprocess.run(["git", "add", "adapter/src/construct_zero/x.py"], cwd=repo, check=True)
     subprocess.run(["git", "commit", "-qm", "src"], cwd=repo, check=True)
     base = subprocess.check_output(["git", "rev-parse", "HEAD~1"], cwd=repo, text=True).strip()
-    errs = g.check(
-        base=base, labels={"no-test-needed"}, pr_body="", local=True, repo_root=repo
-    )
+    errs = g.check(base=base, labels={"no-test-needed"}, pr_body="", local=True, repo_root=repo)
     assert not any("without test" in e for e in errs)
 
 

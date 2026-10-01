@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from fastapi.testclient import TestClient
-
 from construct_zero_voice.server import app, reset_backends, set_backends
+from fastapi.testclient import TestClient
 
 
 class FakeSTT:

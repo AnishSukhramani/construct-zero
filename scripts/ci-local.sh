@@ -21,11 +21,25 @@ run_guardrails() {
 }
 
 run_lint() {
-  echo "lint: not configured yet (PR 03)"
+  cd "$ROOT/adapter"
+  uv sync --locked --extra dev
+  uv run ruff check "$ROOT/adapter" "$ROOT/vpl" "$ROOT/voice" "$ROOT/hermes-plugin" "$ROOT/tests"
 }
 
 run_types() {
-  echo "types: not configured yet (PR 03)"
+  cd "$ROOT/adapter"
+  uv sync --locked --extra dev
+  cd "$ROOT/adapter" && uv run mypy
+  cd "$ROOT" && uv run --project adapter mypy --config-file vpl/mypy.ini
+  cd "$ROOT" && uv run --project adapter mypy --config-file voice/mypy.ini
+}
+
+run_shellcheck() {
+  if ! command -v shellcheck >/dev/null 2>&1; then
+    echo "shellcheck: not installed — skip (CI runs shellcheck on Ubuntu)"
+    return 0
+  fi
+  shellcheck "$ROOT/install.sh" "$ROOT/construct-zero" "$ROOT"/scripts/*.sh "$ROOT"/scripts/lib/*.sh
 }
 
 run_cov() {
@@ -35,15 +49,22 @@ run_cov() {
 case "$STEP" in
   ci)
     run_tests
+    run_lint
+    run_types
+    run_shellcheck
     run_guardrails
     ;;
   test) run_tests ;;
   guardrails) run_guardrails ;;
   lint) run_lint ;;
-  fmt) echo "fmt: PR 03" ;;
+  types) run_types ;;
+  fmt)
+    cd "$ROOT/adapter" && uv sync --locked --extra dev
+    uv run ruff format "$ROOT/adapter" "$ROOT/vpl" "$ROOT/voice" "$ROOT/hermes-plugin" "$ROOT/tests"
+    ;;
   cov) run_cov ;;
   *)
-    echo "Usage: scripts/ci-local.sh [ci|test|guardrails|lint|fmt|cov]" >&2
+    echo "Usage: scripts/ci-local.sh [ci|test|guardrails|lint|types|fmt|cov]" >&2
     exit 2
     ;;
 esac
