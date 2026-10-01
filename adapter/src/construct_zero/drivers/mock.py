@@ -39,6 +39,9 @@ class MockDriver:
         text = self._last_user_text(request)
         if request.tools:
             call_id = f"call_{uuid.uuid4().hex[:8]}"
+            t0 = request.tools[0]
+            fn = t0.get("function", {}) if isinstance(t0, dict) else {}
+            fn_name = fn.get("name", "mock_tool")
             return CompletionResult(
                 text="",
                 tool_calls=[
@@ -46,7 +49,7 @@ class MockDriver:
                         "id": call_id,
                         "type": "function",
                         "function": {
-                            "name": request.tools[0].function.name,
+                            "name": fn_name,
                             "arguments": json.dumps({"echo": text}),
                         },
                     }

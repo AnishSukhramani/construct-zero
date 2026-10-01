@@ -74,6 +74,11 @@ run_license() {
   fi
 }
 
+run_contract() {
+  cd "$ROOT/adapter" && uv sync --locked --extra dev
+  uv run pytest -q tests/contract tests/conformance
+}
+
 run_cov() {
   cd "$ROOT/adapter" && uv sync --locked --extra dev
   cd "$ROOT/vpl" && uv sync --locked --extra dev
@@ -95,6 +100,7 @@ case "$STEP" in
     run_deps_audit
     run_license
     run_cov
+    run_contract
     run_guardrails
     ;;
   test) run_tests ;;

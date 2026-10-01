@@ -8,11 +8,10 @@ from construct_zero.server import create_app
 from fastapi.testclient import TestClient
 
 
-@pytest.mark.parametrize(
-    "backend",
-    ["mock"],
-)
-def test_backend_health_and_chat(backend: str) -> None:
+@pytest.mark.parametrize("backend", ["mock", "cursor"])
+def test_backend_health_and_chat(backend: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    if backend == "cursor":
+        monkeypatch.setenv("CURSOR_API_KEY", "fake-key-for-tests")
     cfg = CZConfig(inference=InferenceConfig(backend=backend))
     client = TestClient(create_app(cfg))
     h = client.get("/health")

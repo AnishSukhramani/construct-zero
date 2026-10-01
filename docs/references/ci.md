@@ -36,7 +36,14 @@ Later PRs add: `contract`, `conformance`, `hermes-pinned`, `first-run`, `pin-bum
 | `test-change-approved` | Delete tests, add skip/xfail, or lower coverage floors |
 | `pin-bump-approved` | Change `config/upstream.lock.yaml` (PR 09) |
 
+**How to apply (maintainer):** open the PR on GitHub → **Labels** (right sidebar) → search or create the label → click to add. Only Anish (or repo admins) should add policy labels; guardrails reads them via the GitHub API on `pull_request` events. The guard is **not** removed — unlabeled test-policy diffs still fail CI.
+
 Guardrails reads labels via the GitHub API. Actor verification is best-effort only; **merge authority is the real gate**.
+
+## Reversible CI defaults (stack PRs 06–09)
+
+- **License:** MPL/LGPL denied unless listed under `[allow_package]` in `scripts/ci/license-allowlist.toml` (reversible by editing that file).
+- **Voice CI:** PyTorch installed from the CPU wheel index in `.github/workflows/ci.yml` (unchanged).
 
 ## Protected paths
 
