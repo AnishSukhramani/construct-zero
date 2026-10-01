@@ -32,6 +32,17 @@ cz_home_cli() {
   exec "$py" -m construct_zero.home.cli "$@"
 }
 
+cz_runtime_cli() {
+  local subcmd="$1"
+  shift
+  local py
+  py="${CZ_ROOT:-$ROOT}/adapter/.venv/bin/python"
+  if [[ ! -x "$py" ]]; then
+    py=python3
+  fi
+  exec "$py" -m construct_zero.home.runtime_cli "$subcmd" "$@"
+}
+
 cz_chat() {
   local hermes has_provider has_model arg extra
   hermes="${HERMES_BIN:-$ROOT/.venvs/hermes/bin/hermes}"
@@ -77,6 +88,9 @@ case "$cmd" in
     ;;
   home)
     cz_home_cli "$@"
+    ;;
+  run|handoff)
+    cz_runtime_cli "$cmd" "$@"
     ;;
   help|--help|-h|/help|/)
     cz_print_help
