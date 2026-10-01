@@ -223,6 +223,19 @@ jobs:
           cd adapter && uv sync --locked --extra dev
           uv run pytest -q tests/conformance
 
+  pin-bump:
+    name: pin-bump
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+        with:
+          fetch-depth: 0
+      - name: Pin bump policy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/ci/pin_bump_check.py
+
   guardrails:
     name: guardrails
     runs-on: ubuntu-latest

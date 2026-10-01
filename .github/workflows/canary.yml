@@ -1,0 +1,20 @@
+name: canary
+
+on:
+  schedule:
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    name: canary
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - name: Hermes main compat (non-blocking)
+        run: |
+          echo "Canary: run hermes-pinned against latest main (TODO wire workflow_call with main ref)"
