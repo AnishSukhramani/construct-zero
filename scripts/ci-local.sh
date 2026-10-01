@@ -42,6 +42,38 @@ run_shellcheck() {
   shellcheck "$ROOT/install.sh" "$ROOT/construct-zero" "$ROOT"/scripts/*.sh "$ROOT"/scripts/lib/*.sh
 }
 
+run_secrets() {
+  if [[ "${GITLEAKS_SKIP:-}" == "1" ]]; then
+    echo "secrets: skipped (GITLEAKS_SKIP=1)"
+    return 0
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "secrets: curl missing — skip"
+    return 0
+  fi
+  bash "$ROOT/scripts/ci/gitleaks.sh"
+}
+
+run_deps_audit() {
+  if [[ "${CI:-}" != "true" ]]; then
+    echo "deps-audit: skip locally; CI=true on GitHub Actions"
+    python3 "$ROOT/scripts/ci/audit_ignore_check.py"
+    return 0
+  fi
+  bash "$ROOT/scripts/ci/deps-audit.sh"
+}
+
+run_license() {
+  cd "$ROOT/adapter" && uv sync --locked --extra dev
+  if ! python3 "$ROOT/scripts/ci/license-check.py"; then
+    if [[ "${CI:-}" != "true" ]]; then
+      echo "license: skip locally on failure; CI runs on ubuntu-latest"
+      return 0
+    fi
+    return 1
+  fi
+}
+
 run_cov() {
   echo "cov: not configured yet (PR 05)"
 }
@@ -52,6 +84,9 @@ case "$STEP" in
     run_lint
     run_types
     run_shellcheck
+    run_secrets
+    run_deps_audit
+    run_license
     run_guardrails
     ;;
   test) run_tests ;;

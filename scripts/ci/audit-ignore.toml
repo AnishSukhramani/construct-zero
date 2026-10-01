@@ -1,0 +1,7 @@
+# pip-audit vulnerability IDs with expiry (YYYY-MM-DD) and reason.
+# Expired entries fail CI until removed or renewed.
+
+[[ignore]]
+id = "PLACEHOLDER-0000"
+reason = "Example row — remove when first real ignore is added"
+expires = "2000-01-01"

@@ -17,8 +17,15 @@ Implementation: [`scripts/ci-local.sh`](../../scripts/ci-local.sh) and [`Makefil
 |-------|-----|-------|
 | `tests` | Aggregator + package matrix | adapter, vpl, voice × Python 3.10–3.12 |
 | `guardrails` | PRs only | Policy on diffs; no-op on push to `main` |
+| `lint` | Ruff | adapter/vpl/voice/hermes-plugin/tests |
+| `types` | mypy | Lenient per-package baselines |
+| `shellcheck` | Shell scripts | install.sh, construct-zero, scripts/*.sh |
+| `secrets` | gitleaks | PR diff; full scan on main push (weekly in later PRs) |
+| `deps-audit` | pip-audit | Lockfile exports; `scripts/ci/audit-ignore.toml` |
+| `license` | pip-licenses | `scripts/ci/license-allowlist.toml` |
+| `dependency-review` | GitHub | PR dependency changes |
 
-Later PRs add: `lint`, `types`, `shellcheck`, compliance, `coverage`, `contract`, `conformance`, `hermes-pinned`, `first-run`, `pin-bump`, `release`, `canary`.
+Later PRs add: `coverage`, `contract`, `conformance`, `hermes-pinned`, `first-run`, `pin-bump`, `release`, `canary`.
 
 ## Labels (Anish applies)
 

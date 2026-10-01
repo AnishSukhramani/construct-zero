@@ -1,0 +1,22 @@
+title = "construct-zero gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  '''\.env\.example$''',
+  '''^tests/''',
+  '''^adapter/tests/''',
+  '''^voice/tests/''',
+  '''^vpl/tests/''',
+  '''^docs/''',
+  '''^scripts/ci/guardrails\.py$''',
+]
+
+regexes = [
+  '''CURSOR_API_KEY=unused''',
+  '''CURSOR_API_KEY=\s*$''',
+  '''sk-fake-''',
+  '''sk-real-secret-value''',
+]

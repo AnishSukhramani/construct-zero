@@ -1,0 +1,17 @@
+# pip-licenses allowlist. Unknown licenses fail CI with fix hint.
+
+[allow]
+MIT = "default"
+"BSD-2-Clause" = "default"
+"BSD-3-Clause" = "default"
+"Apache-2.0" = "default"
+ISC = "default"
+"PSF-2.0" = "default"
+"Python-2.0" = "default"
+"0BSD" = "default"
+Unlicense = "default"
+
+[review]
+"MPL-2.0" = "flag for maintainer review"
+"LGPL-2.1-or-later" = "flag for maintainer review"
+"LGPL-3.0-or-later" = "flag for maintainer review"
