@@ -114,10 +114,17 @@ class ActiveRun:
 class CursorDriver:
     name = "cursor"
 
-    def __init__(self, config: CZConfig, sessions: SessionStore | None = None) -> None:
+    def __init__(
+        self,
+        config: CZConfig,
+        sessions: SessionStore | None = None,
+        *,
+        tool_wait_timeout: float = 300.0,
+    ) -> None:
         self.config = config
         self.cursor_cfg: CursorDriverConfig = config.inference.cursor
         self.sessions = sessions or SessionStore()
+        self._tool_wait_timeout = tool_wait_timeout
         self._workspace = self._make_workspace()
         self._acp = check_acp(self.cursor_cfg.agent_bin)
         self._runs: dict[str, ActiveRun] = {}
@@ -333,7 +340,10 @@ class CursorDriver:
                 raise RuntimeError(msg)
             return CompletionResult(text=text, finish_reason="stop", model=model)
 
-    def _wait_outcome(self, active: ActiveRun, timeout: float = 300.0) -> CompletionResult:
+    def _wait_outcome(
+        self, active: ActiveRun, timeout: float | None = None
+    ) -> CompletionResult:
+        timeout = self._tool_wait_timeout if timeout is None else timeout
         deadline = time.time() + timeout
         while time.time() < deadline:
             if active.batch_event.wait(timeout=0.2):
@@ -422,7 +432,9 @@ class CursorDriver:
                     "function": {"name": name, "arguments": arguments},
                 }
                 active.push_tool(tc)
-                return session.wait_result(pending.call_id, timeout=300.0)
+                return session.wait_result(
+                    pending.call_id, timeout=self._tool_wait_timeout
+                )
 
             return CustomTool(
                 description=description or f"Hermes tool {name}",

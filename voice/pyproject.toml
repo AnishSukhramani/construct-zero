@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0", "pytest-cov>=6.0"]
 
 [project.scripts]
 construct-zero-voice = "construct_zero_voice.__main__:main"
@@ -39,3 +39,6 @@ construct-zero-vpl = { path = "../vpl", editable = true }
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["construct_zero_voice"]

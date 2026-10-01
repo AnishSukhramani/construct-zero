@@ -75,7 +75,14 @@ run_license() {
 }
 
 run_cov() {
-  echo "cov: not configured yet (PR 05)"
+  cd "$ROOT/adapter" && uv sync --locked --extra dev
+  cd "$ROOT/vpl" && uv sync --locked --extra dev
+  cd "$ROOT/voice" && uv sync --locked --extra dev --no-install-project
+  if [[ "${CZ_COV_SKIP_VOICE:-}" != "1" ]]; then
+    (cd "$ROOT/voice" && uv pip install torch --index-url https://download.pytorch.org/whl/cpu)
+    (cd "$ROOT/voice" && uv pip install -e ".[dev]")
+  fi
+  python3 "$ROOT/scripts/ci/coverage-check.py" --package all
 }
 
 case "$STEP" in
@@ -84,9 +91,13 @@ case "$STEP" in
     run_lint
     run_types
     run_shellcheck
+<<<<<<< HEAD
     run_secrets
     run_deps_audit
     run_license
+=======
+    run_cov
+>>>>>>> 3cf60d4 (ci: pytest-cov floors, fake cursor_sdk, adapter/vpl/voice unit tests)
     run_guardrails
     ;;
   test) run_tests ;;
