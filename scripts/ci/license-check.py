@@ -91,11 +91,17 @@ def main() -> int:
     cfg = tomllib.loads(ALLOW.read_text())
     allowed = set(cfg.get("allow", {}).keys())
     denied = set(cfg.get("deny", {}).keys())
+<<<<<<< HEAD
     review = set(cfg.get("review", {}).keys())
     allow_package: dict[str, str] = dict(cfg.get("allow_package", {}))
     unknown: list[str] = []
     denied_hits: list[str] = []
     flagged: list[str] = []
+=======
+    allow_package: dict[str, str] = dict(cfg.get("allow_package", {}))
+    unknown: list[str] = []
+    denied_hits: list[str] = []
+>>>>>>> c1c99ec (test: complete API contract schemas, fixtures, wire uvicorn, conformance matrix)
     for name in ("adapter", "vpl", "voice"):
         pkg_dir = ROOT / name
         subprocess.run(
@@ -109,6 +115,7 @@ def main() -> int:
             pkg = row.get("Name", "?")
             if pkg in LOCAL_PACKAGES:
                 continue
+<<<<<<< HEAD
             ok, err = _license_allowed(
                 lic,
                 allowed=allowed,
@@ -122,6 +129,17 @@ def main() -> int:
             tokens = _normalize_tokens(lic)
             if any(t in review for t in tokens):
                 flagged.append(f"{pkg} ({lic})")
+=======
+            if pkg in allow_package:
+                if allow_package[pkg] == lic:
+                    continue
+                denied_hits.append(
+                    f"{pkg}: {lic} (allow_package expects {allow_package[pkg]!r})"
+                )
+                continue
+            if lic in denied:
+                denied_hits.append(f"{pkg}: {lic}")
+>>>>>>> c1c99ec (test: complete API contract schemas, fixtures, wire uvicorn, conformance matrix)
                 continue
             if any(t in denied for t in tokens):
                 denied_hits.append(err)
@@ -137,8 +155,11 @@ def main() -> int:
         for d in denied_hits:
             print(f"  {d}", file=sys.stderr)
         return 1
+<<<<<<< HEAD
     if flagged:
         print("Review flagged licenses:", *flagged, sep="\n  ")
+=======
+>>>>>>> c1c99ec (test: complete API contract schemas, fixtures, wire uvicorn, conformance matrix)
     print("license: ok")
     return 0
 

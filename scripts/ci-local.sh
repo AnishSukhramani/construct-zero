@@ -74,6 +74,11 @@ run_license() {
   fi
 }
 
+run_contract() {
+  cd "$ROOT/adapter" && uv sync --locked --extra dev
+  uv run pytest -q tests/contract tests/conformance
+}
+
 run_cov() {
   cd "$ROOT/adapter" && uv sync --locked --extra dev
   cd "$ROOT/vpl" && uv sync --locked --extra dev
@@ -91,13 +96,11 @@ case "$STEP" in
     run_lint
     run_types
     run_shellcheck
-<<<<<<< HEAD
     run_secrets
     run_deps_audit
     run_license
-=======
     run_cov
->>>>>>> 3cf60d4 (ci: pytest-cov floors, fake cursor_sdk, adapter/vpl/voice unit tests)
+    run_contract
     run_guardrails
     ;;
   test) run_tests ;;

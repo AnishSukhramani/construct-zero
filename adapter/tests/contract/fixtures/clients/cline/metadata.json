@@ -1,0 +1,6 @@
+{
+  "client": "cline",
+  "recorded_at": "2026-01-01T00:00:00Z",
+  "note": "Synthetic fixture for contract replay (no secrets). Re-record with scripts/ci/record-client-fixture.sh",
+  "base_path": "/v1/chat/completions"
+}

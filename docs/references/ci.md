@@ -11,29 +11,22 @@ make test  # scripts/run-tests.sh --fast
 
 Implementation: [`scripts/ci-local.sh`](../../scripts/ci-local.sh) and [`Makefile`](../../Makefile).
 
-## Checks (PR 02 baseline)
+## Checks
 
 | Check | Job | Notes |
 |-------|-----|-------|
 | `tests` | Aggregator + package matrix | adapter, vpl, voice × Python 3.10–3.12 |
-| `lint` | ruff | adapter, vpl, voice, hermes-plugin, tests |
-| `types` | mypy | adapter + vpl/voice configs |
-| `shellcheck` | shellcheck | install.sh, construct-zero, scripts |
-| `coverage` | pytest-cov floors | `scripts/ci/coverage-check.py` + `coverage-floors.toml` |
-| `guardrails` | PRs only | Policy on diffs; no-op on push to `main` |
 | `lint` | Ruff | adapter/vpl/voice/hermes-plugin/tests |
 | `types` | mypy | Lenient per-package baselines |
 | `shellcheck` | Shell scripts | install.sh, construct-zero, scripts/*.sh |
-| `secrets` | gitleaks | PR diff; full scan on main push (weekly in later PRs) |
+| `secrets` | gitleaks | PR diff |
 | `deps-audit` | pip-audit | Lockfile exports; `scripts/ci/audit-ignore.toml` |
 | `license` | pip-licenses | `scripts/ci/license-allowlist.toml` |
 | `dependency-review` | GitHub | PR dependency changes |
+| `coverage` | pytest-cov | `scripts/ci/coverage-check.py` + floors |
+| `guardrails` | PRs only | Policy on diffs; no-op on push to `main` |
 
-<<<<<<< HEAD
-Later PRs add: `coverage`, `contract`, `conformance`, `hermes-pinned`, `first-run`, `pin-bump`, `release`, `canary`.
-=======
-Later PRs add: compliance, `contract`, `conformance`, `hermes-pinned`, `first-run`, `pin-bump`, `release`, `canary`.
->>>>>>> 3cf60d4 (ci: pytest-cov floors, fake cursor_sdk, adapter/vpl/voice unit tests)
+Later PRs add: `contract`, `conformance`, `hermes-pinned`, `first-run`, `pin-bump`, `release`, `canary`.
 
 ## Labels (Anish applies)
 
@@ -43,7 +36,14 @@ Later PRs add: compliance, `contract`, `conformance`, `hermes-pinned`, `first-ru
 | `test-change-approved` | Delete tests, add skip/xfail, or lower coverage floors |
 | `pin-bump-approved` | Change `config/upstream.lock.yaml` (PR 09) |
 
+**How to apply (maintainer):** open the PR on GitHub → **Labels** (right sidebar) → search or create the label → click to add. Only Anish (or repo admins) should add policy labels; guardrails reads them via the GitHub API on `pull_request` events. The guard is **not** removed — unlabeled test-policy diffs still fail CI.
+
 Guardrails reads labels via the GitHub API. Actor verification is best-effort only; **merge authority is the real gate**.
+
+## Reversible CI defaults (stack PRs 06–09)
+
+- **License:** MPL/LGPL denied unless listed under `[allow_package]` in `scripts/ci/license-allowlist.toml` (reversible by editing that file).
+- **Voice CI:** PyTorch installed from the CPU wheel index in `.github/workflows/ci.yml` (unchanged).
 
 ## Protected paths
 
