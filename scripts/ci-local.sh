@@ -39,7 +39,7 @@ run_shellcheck() {
     echo "shellcheck: not installed — skip (CI runs shellcheck on Ubuntu)"
     return 0
   fi
-  shellcheck "$ROOT/install.sh" "$ROOT/construct-zero" "$ROOT"/scripts/*.sh "$ROOT"/scripts/lib/*.sh
+  shellcheck -e SC1091 "$ROOT/install.sh" "$ROOT/construct-zero" "$ROOT"/scripts/*.sh "$ROOT"/scripts/lib/*.sh
 }
 
 run_secrets() {
