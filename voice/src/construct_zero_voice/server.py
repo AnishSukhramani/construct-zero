@@ -9,13 +9,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, File, Header, HTTPException, UploadFile
-from fastapi.responses import FileResponse, Response
-from fastapi.staticfiles import StaticFiles
 from construct_zero_vpl.config import VplConfig
 from construct_zero_vpl.engine import PresentationEngine
 from construct_zero_vpl.intents import is_navigation_intent
 from construct_zero_vpl.models import NavPhase
+from fastapi import FastAPI, File, Header, HTTPException, UploadFile
+from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from construct_zero_voice import __version__
@@ -158,7 +158,9 @@ def _build_turn_response(
     )
 
 
-def _route_transcript(transcript: str, session_id: str | None) -> tuple[str, str, str | None, str, list[dict], str]:
+def _route_transcript(
+    transcript: str, session_id: str | None
+) -> tuple[str, str, str | None, str, list[dict], str]:
     """Return speak_text, reply, session_id, mode, buckets, nav_hint."""
     engine = get_vpl_engine()
     store = get_session_store()

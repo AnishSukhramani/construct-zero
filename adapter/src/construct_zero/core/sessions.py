@@ -6,7 +6,6 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any
 
 
 @dataclass
@@ -98,9 +97,7 @@ class SessionStore:
     def _purge_locked(self) -> None:
         now = time.time()
         dead = [
-            sid
-            for sid, s in self._sessions.items()
-            if s.closed or (now - s.created_at) > self._ttl
+            sid for sid, s in self._sessions.items() if s.closed or (now - s.created_at) > self._ttl
         ]
         for sid in dead:
             self._sessions.pop(sid, None)

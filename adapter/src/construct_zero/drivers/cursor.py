@@ -13,8 +13,9 @@ import os
 import tempfile
 import threading
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Any, Iterator
+from typing import Any
 
 from construct_zero.config import CursorDriverConfig, CZConfig
 from construct_zero.core.backend import CompletionResult, HealthStatus, StreamChunk
@@ -63,7 +64,8 @@ def messages_to_prompt(messages: list[ChatMessage]) -> str:
             lines.append(f"[{role}]\n{text}")
     lines.append(
         "\n[instruction]\nRespond as the assistant. "
-        "If tools are available, call them via the provided custom tools rather than inventing results."
+        "If tools are available, call them via the provided custom tools "
+        "rather than inventing results."
     )
     return "\n\n".join(lines)
 
@@ -79,9 +81,7 @@ def _openai_tool_schema(tool: dict[str, Any]) -> tuple[str, str, dict[str, Any]]
     return (
         str(tool.get("name") or "tool"),
         str(tool.get("description") or ""),
-        tool.get("parameters")
-        or tool.get("input_schema")
-        or {"type": "object", "properties": {}},
+        tool.get("parameters") or tool.get("input_schema") or {"type": "object", "properties": {}},
     )
 
 
@@ -228,9 +228,7 @@ class CursorDriver:
                     "object": "chat.completion.chunk",
                     "created": created,
                     "model": result.model,
-                    "choices": [
-                        {"index": 0, "delta": {}, "finish_reason": "tool_calls"}
-                    ],
+                    "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}],
                 },
                 done=True,
             )
@@ -283,9 +281,7 @@ class CursorDriver:
             done=True,
         )
 
-    def _extract_tool_results(
-        self, messages: list[ChatMessage]
-    ) -> list[tuple[str, str]]:
+    def _extract_tool_results(self, messages: list[ChatMessage]) -> list[tuple[str, str]]:
         return [
             (m.tool_call_id, _message_text(m.content))
             for m in messages
@@ -314,9 +310,7 @@ class CursorDriver:
             local=LocalAgentOptions(**local_kwargs),
         )
 
-    def _complete_text(
-        self, request: ChatCompletionRequest, model: str
-    ) -> CompletionResult:
+    def _complete_text(self, request: ChatCompletionRequest, model: str) -> CompletionResult:
         from cursor_sdk import Agent
 
         api_key = self._api_key()
@@ -400,9 +394,7 @@ class CursorDriver:
         active.model = model or active.model
         return self._wait_outcome(active)
 
-    def _start_tool_run(
-        self, request: ChatCompletionRequest, model: str
-    ) -> CompletionResult:
+    def _start_tool_run(self, request: ChatCompletionRequest, model: str) -> CompletionResult:
         from cursor_sdk import Agent, CustomTool
 
         api_key = self._api_key()
@@ -423,9 +415,7 @@ class CursorDriver:
                     args if isinstance(args, dict) else {"value": args},
                     ensure_ascii=False,
                 )
-                pending = session.park(
-                    name=name, arguments=arguments, call_id=call_id
-                )
+                pending = session.park(name=name, arguments=arguments, call_id=call_id)
                 tc = {
                     "id": pending.call_id,
                     "type": "function",
@@ -451,9 +441,7 @@ class CursorDriver:
                 custom_tools[name] = custom_tools[safe]
 
         prompt = messages_to_prompt(request.messages)
-        options = self._agent_options(
-            model=model, api_key=api_key, custom_tools=custom_tools
-        )
+        options = self._agent_options(model=model, api_key=api_key, custom_tools=custom_tools)
 
         def runner() -> None:
             try:
@@ -470,9 +458,7 @@ class CursorDriver:
                     if status == "error":
                         err = getattr(result, "error", None)
                         active.error = RuntimeError(
-                            getattr(err, "message", None)
-                            or str(err)
-                            or "run error"
+                            getattr(err, "message", None) or str(err) or "run error"
                         )
             except BaseException as exc:
                 active.error = exc

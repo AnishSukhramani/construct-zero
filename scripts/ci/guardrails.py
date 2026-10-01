@@ -169,7 +169,17 @@ def check(
         )
 
     deleted_tests = [f for f in _deleted_files(base, repo_root=repo_root) if _is_test_path(f)]
-    skip_added = any(m in diff for m in TEST_MARKERS)
+    skip_added = False
+    for path in files:
+        if not _is_test_path(path):
+            continue
+        try:
+            chunk = _run(["git", "diff", f"{base}...HEAD", "--", path], cwd=repo_root)
+        except subprocess.CalledProcessError:
+            continue
+        if any(m in chunk for m in TEST_MARKERS):
+            skip_added = True
+            break
     if (deleted_tests or skip_added) and "test-change-approved" not in labels:
         errors.append(
             "Test deletion or skip/xfail requires the `test-change-approved` label."
@@ -177,10 +187,13 @@ def check(
 
     floors_path = repo_root / FLOORS_FILE.relative_to(ROOT)
     if floors_path.exists() and "coverage-floors.toml" in diff:
-        old_text = _run(
-            ["git", "show", f"{base}:{FLOORS_FILE.relative_to(ROOT)}"],
-            cwd=repo_root,
-        )
+        try:
+            old_text = _run(
+                ["git", "show", f"{base}:{FLOORS_FILE.relative_to(ROOT)}"],
+                cwd=repo_root,
+            )
+        except subprocess.CalledProcessError:
+            old_text = ""
         new_text = floors_path.read_text()
         old_f = _parse_floor_values(old_text)
         new_f = _parse_floor_values(new_text)
