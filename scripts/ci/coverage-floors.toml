@@ -1,0 +1,9 @@
+# Package coverage floors (ratchet up only; lowering needs label test-change-approved).
+[floors]
+adapter = 0
+vpl = 0
+voice = 0
+
+[targets]
+"adapter/src/construct_zero/drivers/cursor.py" = 60
+"adapter/src/construct_zero/core/streaming.py" = 70

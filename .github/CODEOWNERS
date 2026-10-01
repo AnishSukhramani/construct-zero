@@ -1,0 +1,14 @@
+# Default owner
+* @AnishSukhramani
+
+# Protected paths (require explicit review + PR body section)
+/install.sh @AnishSukhramani
+/config/upstream.lock.yaml @AnishSukhramani
+/.github/ @AnishSukhramani
+/scripts/doctor.sh @AnishSukhramani
+/scripts/ci/ @AnishSukhramani
+/Makefile @AnishSukhramani
+/.gitattributes @AnishSukhramani
+/adapter/uv.lock @AnishSukhramani
+/vpl/uv.lock @AnishSukhramani
+/voice/uv.lock @AnishSukhramani
