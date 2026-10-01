@@ -16,6 +16,10 @@ Implementation: [`scripts/ci-local.sh`](../../scripts/ci-local.sh) and [`Makefil
 | Check | Job | Notes |
 |-------|-----|-------|
 | `tests` | Aggregator + package matrix | adapter, vpl, voice × Python 3.10–3.12 |
+| `lint` | ruff | adapter, vpl, voice, hermes-plugin, tests |
+| `types` | mypy | adapter + vpl/voice configs |
+| `shellcheck` | shellcheck | install.sh, construct-zero, scripts |
+| `coverage` | pytest-cov floors | `scripts/ci/coverage-check.py` + `coverage-floors.toml` |
 | `guardrails` | PRs only | Policy on diffs; no-op on push to `main` |
 | `lint` | Ruff | adapter/vpl/voice/hermes-plugin/tests |
 | `types` | mypy | Lenient per-package baselines |
@@ -25,7 +29,11 @@ Implementation: [`scripts/ci-local.sh`](../../scripts/ci-local.sh) and [`Makefil
 | `license` | pip-licenses | `scripts/ci/license-allowlist.toml` |
 | `dependency-review` | GitHub | PR dependency changes |
 
+<<<<<<< HEAD
 Later PRs add: `coverage`, `contract`, `conformance`, `hermes-pinned`, `first-run`, `pin-bump`, `release`, `canary`.
+=======
+Later PRs add: compliance, `contract`, `conformance`, `hermes-pinned`, `first-run`, `pin-bump`, `release`, `canary`.
+>>>>>>> 3cf60d4 (ci: pytest-cov floors, fake cursor_sdk, adapter/vpl/voice unit tests)
 
 ## Labels (Anish applies)
 

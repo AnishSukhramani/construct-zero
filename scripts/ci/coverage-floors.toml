@@ -1,8 +1,8 @@
 # Package coverage floors (ratchet up only; lowering needs label test-change-approved).
 [floors]
-adapter = 0
-vpl = 0
-voice = 0
+adapter = 88
+vpl = 77
+voice = 59
 
 [targets]
 "adapter/src/construct_zero/drivers/cursor.py" = 60
