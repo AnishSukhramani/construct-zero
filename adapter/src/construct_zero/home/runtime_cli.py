@@ -1,11 +1,16 @@
-"""CLI for run, handoff (PR 19); extended in PR 20 for kill/usage."""
+"""CLI for run, handoff, kill, unkill, usage."""
 
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import sys
-from pathlib import Path
+import httpx
 
+from construct_zero.home import admin as cz_admin
+from construct_zero.home import kill_registry as cz_kill_registry
+from construct_zero.home import ledger as cz_ledger
 from construct_zero.home.runner import handoff_to, normalize_agent, run_agent
 
 
@@ -75,8 +80,69 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--from-agent", default="manual")
         args = p.parse_args(argv)
         return cmd_handoff(args)
-    print(f"command not implemented in this PR: {verb}", file=sys.stderr)
+    if verb == "kill":
+        p = argparse.ArgumentParser(prog="construct-zero kill")
+        p.add_argument("--reason", default="")
+        args = p.parse_args(argv)
+        return cmd_kill(args)
+    if verb == "unkill":
+        return cmd_unkill()
+    if verb == "usage":
+        p = argparse.ArgumentParser(prog="construct-zero usage")
+        p.add_argument("--since", default=None)
+        p.add_argument("--by", default="agent", choices=["agent", "day", "model"])
+        p.add_argument("--json", action="store_true")
+        args = p.parse_args(argv)
+        return cmd_usage(args)
+    print(f"unknown command: {verb}", file=sys.stderr)
     return 1
+
+
+def _adapter_base() -> str:
+    host = os.environ.get("CZ_HOST", "127.0.0.1")
+    port = os.environ.get("CZ_PORT", "8765")
+    return f"http://{host}:{port}"
+
+
+def cmd_kill(args: argparse.Namespace) -> int:
+    cz_admin.set_killed(args.reason)
+    cz_kill_registry.terminate_all()
+    key = cz_admin.ensure_admin_key()
+    try:
+        httpx.post(
+            f"{_adapter_base()}/cz/v1/admin/kill",
+            headers={"Authorization": f"Bearer {key}"},
+            timeout=2.0,
+        )
+    except httpx.HTTPError:
+        pass
+    print("Kill switch engaged.")
+    return 0
+
+
+def cmd_unkill() -> int:
+    cz_admin.clear_killed()
+    key = cz_admin.ensure_admin_key()
+    try:
+        httpx.post(
+            f"{_adapter_base()}/cz/v1/admin/unkill",
+            headers={"Authorization": f"Bearer {key}"},
+            timeout=2.0,
+        )
+    except httpx.HTTPError:
+        pass
+    print("Kill switch cleared.")
+    return 0
+
+
+def cmd_usage(args: argparse.Namespace) -> int:
+    rows = cz_ledger.aggregate_usage(since=args.since, group_by=args.by)
+    if args.json:
+        print(json.dumps({"data": rows}, indent=2))
+    else:
+        for row in rows:
+            print(f"{row['key']}\t{row['total_tokens']} tokens\t({row['requests']} reqs)")
+    return 0
 
 
 if __name__ == "__main__":

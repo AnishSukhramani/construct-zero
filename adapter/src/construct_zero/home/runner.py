@@ -16,6 +16,7 @@ from typing import Callable
 from construct_zero.home.checkpoint import handoff_prompt, write_checkpoint
 from construct_zero.home.importers.base import import_checkpoint
 from construct_zero.home.quota import match_quota
+from construct_zero.home import kill_registry as cz_kill_registry
 from construct_zero.home import registry as reg_mod
 
 AGENT_ALIASES = {
@@ -97,13 +98,18 @@ def run_agent(
             on_quota()
 
     if not use_pty:
-        proc = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
             cwd=project,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            check=False,
+            start_new_session=True,
         )
+        cz_kill_registry.register_pid(proc.pid)
+        out, err = proc.communicate()
+        cz_kill_registry.unregister_pid(proc.pid)
+        proc = subprocess.CompletedProcess(cmd, proc.returncode, out, err)
         out = (proc.stdout or "") + (proc.stderr or "")
         collected.append(out)
         sys.stdout.write(proc.stdout or "")
@@ -126,7 +132,9 @@ def run_agent(
         stderr=slave,
         cwd=project,
         close_fds=True,
+        start_new_session=True,
     )
+    cz_kill_registry.register_pid(proc.pid)
     os.close(slave)
     try:
         old = termios.tcgetattr(sys.stdin)
