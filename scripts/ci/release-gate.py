@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -28,8 +27,9 @@ def main() -> int:
         return 1
     for pkg in ("adapter", "vpl", "voice"):
         text = (ROOT / pkg / "pyproject.toml").read_text()
-        if f'version = "{tag}"' not in text and tag not in text:
-            print(f"version mismatch in {pkg} for tag {tag}", file=sys.stderr)
+        mver = re.search(r'^version = "([^"]+)"', text, re.M)
+        if not mver or mver.group(1) != tag:
+            print(f"version mismatch in {pkg}: expected {tag}", file=sys.stderr)
             return 1
     print("release-gate: ok (dry-run)")
     return 0

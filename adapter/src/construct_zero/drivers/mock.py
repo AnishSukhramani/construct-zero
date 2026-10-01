@@ -5,11 +5,10 @@ from __future__ import annotations
 import json
 import uuid
 from collections.abc import Iterator
-from typing import Any
 
 from construct_zero.core.backend import CompletionResult, HealthStatus, StreamChunk
 from construct_zero.core.sessions import SessionStore
-from construct_zero.openai_types import ChatCompletionRequest, ChatMessage
+from construct_zero.openai_types import ChatCompletionRequest
 
 
 class MockDriver:
@@ -78,7 +77,7 @@ class MockDriver:
             piece = payload[i : i + chunk_size] or payload
             yield StreamChunk(
                 data={
-                    "id": f"chatcmpl-mock",
+                    "id": "chatcmpl-mock",
                     "object": "chat.completion.chunk",
                     "choices": [
                         {
