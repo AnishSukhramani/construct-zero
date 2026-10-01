@@ -48,8 +48,14 @@ def _cmd_status(_args: argparse.Namespace) -> int:
 
 
 def _cmd_agents(args: argparse.Namespace) -> int:
-    if args.key_action:
-        print("Per-agent adapter keys: implemented in PR 20 (usage ledger).", file=sys.stderr)
+    if args.key_action == "key":
+        if not args.agent_id:
+            print("usage: home agents key <id>", file=sys.stderr)
+            return 2
+        from construct_zero.home.identity import issue_agent_key
+
+        token = issue_agent_key(args.agent_id)
+        print(token)
         return 0
     reg = reg_mod.sync_registry()
     print(json.dumps(reg.to_dict()["agents"], indent=2))
@@ -110,8 +116,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("status").set_defaults(func=_cmd_status)
     agents = sub.add_parser("agents", help="List detected agents")
-    agents.add_argument("key_action", nargs="?", choices=["key"])
-    agents.add_argument("agent_id", nargs="?")
+    agents_sub = agents.add_subparsers(dest="key_action")
+    key_p = agents_sub.add_parser("key")
+    key_p.add_argument("agent_id")
+    key_p.set_defaults(key_action="key")
+    agents.set_defaults(key_action=None)
     agents.set_defaults(func=_cmd_agents)
 
     sub.add_parser("sync").set_defaults(func=_cmd_sync)

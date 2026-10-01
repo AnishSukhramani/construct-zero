@@ -89,7 +89,7 @@ case "$cmd" in
   home)
     cz_home_cli "$@"
     ;;
-  run|handoff)
+  run|handoff|kill|unkill|usage)
     cz_runtime_cli "$cmd" "$@"
     ;;
   help|--help|-h|/help|/)
