@@ -29,6 +29,25 @@ def test_chat_completion_mock() -> None:
     assert "mock:hi" in r.json()["choices"][0]["message"]["content"]
 
 
+def test_mock_tool_call_when_tools_present() -> None:
+    r = _client().post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "hi"}],
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {"name": "echo", "parameters": {"type": "object"}},
+                }
+            ],
+        },
+    )
+    assert r.status_code == 200
+    msg = r.json()["choices"][0]["message"]
+    assert msg.get("tool_calls")
+
+
 def test_auth_envelope() -> None:
     cfg = CZConfig()
     cfg.adapter.api_key = "secret"
