@@ -50,7 +50,9 @@ Full tree index: [docs/README.md](docs/README.md).
 | `vpl/` | Voice Presentation Layer (`construct-zero-vpl`) |
 | `hermes-plugin/` | Declarative Hermes Construct-Zero provider |
 | `docs/` | Agent knowledge base (this system) |
-| `scripts/` | init, setup, start, doctor, update |
+| `scripts/` | init, setup, start, doctor, update, `run-tests.sh` |
+| `scripts/ci/` | verify-staged, pre-commit hook, guardrails (later PRs) |
+| `tests/repo/` | Repo-level pytest (shell scripts, guardrails, README invariants) |
 | `construct-zero` | Folder-local CLI (`start`, `doctor`, `init`, `chat`, `help`) |
 | `install.sh` | Curl cwd bootstrap (folder-isolated) |
 | `config/` | Examples + upstream lock pin |

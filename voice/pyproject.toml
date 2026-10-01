@@ -33,6 +33,9 @@ packages = ["src/construct_zero_voice"]
 [tool.hatch.build.targets.wheel.force-include]
 "src/construct_zero_voice/static" = "construct_zero_voice/static"
 
+[tool.uv.sources]
+construct-zero-vpl = { path = "../vpl", editable = true }
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
