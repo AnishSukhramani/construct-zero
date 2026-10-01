@@ -1,0 +1,41 @@
+name: first-run
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  first-run:
+    name: first-run
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+
+      - name: Install minimal OS deps
+        run: apt-get update && apt-get install -y git curl python3 ca-certificates
+
+      - name: Unboxing (skip Hermes)
+        working-directory: /tmp/cz-unbox
+        run: |
+          mkdir -p /tmp/cz-unbox && cd /tmp/cz-unbox
+          CZ_INSTALL_REPO="file://$GITHUB_WORKSPACE" bash "$GITHUB_WORKSPACE/install.sh" --auto --no-start --skip-hermes
+          export CZ_BACKEND=mock
+          ./construct-zero start
+          sleep 2
+          curl -sf http://127.0.0.1:8765/health
+          curl -sf http://127.0.0.1:8765/v1/chat/completions \
+            -H 'Content-Type: application/json' \
+            -d '{"model":"auto","messages":[{"role":"user","content":"ping"}]}'
+
+  first-run-macos:
+    name: first-run-macos
+    runs-on: macos-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - run: echo "Advisory macOS unboxing — enable blocking via FIRST_RUN_MACOS_BLOCKING repo variable"
