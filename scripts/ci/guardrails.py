@@ -264,6 +264,15 @@ def main() -> int:
     if errors:
         for e in errors:
             print(f"guardrails: {e}", file=sys.stderr)
+        label_only = all(
+            "test-change-approved" in e
+            or "Coverage floor lowered" in e
+            or e.startswith("(local guardrails")
+            for e in errors
+        )
+        if args.local and label_only:
+            print("guardrails: ok (local advisory — CI enforces labels on PR)")
+            return 0
         return 1
     print("guardrails: ok")
     return 0
