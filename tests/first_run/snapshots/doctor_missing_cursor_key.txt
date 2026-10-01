@@ -1,0 +1,2 @@
+CURSOR_API_KEY is not set. Add it to
+Create a key: https://cursor.com/dashboard

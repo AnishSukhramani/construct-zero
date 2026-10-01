@@ -48,6 +48,23 @@ PORT="${CZ_PORT:-${HCX_PORT:-8765}}"
 MAX_RESTARTS="${CZ_MAX_RESTARTS:-${HCX_MAX_RESTARTS:-50}}"
 RESTART_DELAY="${CZ_RESTART_DELAY:-${HCX_RESTART_DELAY:-2}}"
 
+cz_port_busy() {
+  local host="$1" port="$2"
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn 2>/dev/null | grep -qE ":${port}[[:space:]]" && return 0
+  fi
+  if (echo >/dev/tcp/"$host"/"$port") 2>/dev/null; then
+    return 0
+  fi
+  return 1
+}
+
+if cz_port_busy "$HOST" "$PORT"; then
+  echo "Port ${HOST}:${PORT} is already in use." >&2
+  echo "Stop the other process or set CZ_PORT to a free loopback port." >&2
+  exit 1
+fi
+
 # Stop existing
 if [[ -f "$PID_FILE" ]]; then
   old="$(cat "$PID_FILE" || true)"
