@@ -1,4 +1,5 @@
 # pip-licenses allowlist. Unknown licenses fail CI with fix hint.
+# MPL/LGPL denied unless listed under [allow_package] (reversible).
 
 [allow]
 MIT = "default"
@@ -11,7 +12,13 @@ ISC = "default"
 "0BSD" = "default"
 Unlicense = "default"
 
-[review]
-"MPL-2.0" = "flag for maintainer review"
-"LGPL-2.1-or-later" = "flag for maintainer review"
-"LGPL-3.0-or-later" = "flag for maintainer review"
+[deny]
+"MPL-2.0" = "deny by default — add [allow_package] entry if required"
+"Mozilla Public License 2.0 (MPL 2.0)" = "deny by default"
+"LGPL-2.1-or-later" = "deny by default"
+"LGPL-3.0-or-later" = "deny by default"
+
+[allow_package]
+certifi = "Mozilla Public License 2.0 (MPL 2.0)"
+pathspec = "Mozilla Public License 2.0 (MPL 2.0)"
+cursor-sdk = "Other/Proprietary License"

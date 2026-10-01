@@ -17,10 +17,14 @@ audit_pkg() {
   local req errf
   req="$(mktemp)"
   errf="$(mktemp)"
+  local raw
+  raw="$(mktemp)"
   (
     cd "$dir"
-    uv export --frozen --format requirements-txt --no-emit-workspace --no-dev -o "$req"
+    uv export --frozen --format requirements-txt --no-emit-workspace --no-emit-project --no-dev -o "$raw"
   )
+  python3 "$ROOT/scripts/ci/filter_audit_requirements.py" "$raw" "$req"
+  rm -f "$raw"
   set +e
   "$ROOT/adapter/.venv/bin/pip-audit" -r "$req" --strict --desc on 2>"$errf"
   local rc=$?
