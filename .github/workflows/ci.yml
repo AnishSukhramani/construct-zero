@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_call:
   pull_request:
   push:
     branches: [main]
@@ -222,6 +223,48 @@ jobs:
       - run: |
           cd adapter && uv sync --locked --extra dev
           uv run pytest -q tests/conformance
+
+  lock-changed:
+    name: lock-changed
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+      pinned_ref: ${{ steps.check.outputs.pinned_ref }}
+      main_ref: ${{ steps.check.outputs.main_ref }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+        with:
+          fetch-depth: 0
+      - id: check
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$base"...HEAD | grep -qx 'config/upstream.lock.yaml'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            pinned="$(python3 -c "import yaml; print(yaml.safe_load(open('config/upstream.lock.yaml'))['hermes']['ref'])")"
+            echo "pinned_ref=$pinned" >> "$GITHUB_OUTPUT"
+            main_ref="$(git ls-remote https://github.com/NousResearch/hermes-agent.git refs/heads/main | awk '{print $1}')"
+            echo "main_ref=$main_ref" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  hermes-pinned-pin:
+    name: hermes-pinned (lock ref)
+    needs: lock-changed
+    if: needs.lock-changed.outputs.changed == 'true'
+    uses: ./.github/workflows/hermes-pinned.yml
+    with:
+      hermes_ref: ${{ needs.lock-changed.outputs.pinned_ref }}
+
+  hermes-pinned-main:
+    name: hermes-pinned (main canary)
+    needs: lock-changed
+    if: needs.lock-changed.outputs.changed == 'true'
+    uses: ./.github/workflows/hermes-pinned.yml
+    with:
+      hermes_ref: ${{ needs.lock-changed.outputs.main_ref }}
 
   pin-bump:
     name: pin-bump

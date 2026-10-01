@@ -9,8 +9,18 @@ permissions:
   contents: read
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  hermes-pinned:
+    uses: ./.github/workflows/hermes-pinned.yml
+
+  first-run:
+    uses: ./.github/workflows/first-run.yml
+
   release:
     name: release
+    needs: [ci, hermes-pinned, first-run]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
