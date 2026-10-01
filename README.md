@@ -61,6 +61,8 @@ You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 
 `scripts/start.sh`, `scripts/doctor.sh`, and `scripts/init.sh` still work.
 
+**Preview:** `./construct-zero home init` adds a shared `.cz/` context store for Claude, Cursor, and Hermes — see [docs/features/agent-home.md](docs/features/agent-home.md).
+
 ## Requirements
 
 - Git, curl, Python 3.11+ (3.12 preferred)
