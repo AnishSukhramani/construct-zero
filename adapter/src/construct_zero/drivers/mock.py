@@ -5,11 +5,10 @@ from __future__ import annotations
 import json
 import uuid
 from collections.abc import Iterator
-from typing import Any
 
 from construct_zero.core.backend import CompletionResult, HealthStatus, StreamChunk
 from construct_zero.core.sessions import SessionStore
-from construct_zero.openai_types import ChatCompletionRequest, ChatMessage
+from construct_zero.openai_types import ChatCompletionRequest
 
 
 class MockDriver:
@@ -39,9 +38,16 @@ class MockDriver:
         text = self._last_user_text(request)
         if request.tools:
             call_id = f"call_{uuid.uuid4().hex[:8]}"
-            t0 = request.tools[0]
-            fn = t0.get("function", {}) if isinstance(t0, dict) else {}
-            fn_name = fn.get("name", "mock_tool")
+            tool0 = request.tools[0]
+            if isinstance(tool0, dict):
+                fn_raw = tool0.get("function", {})
+                fn_name = (
+                    fn_raw.get("name", "mock_tool")
+                    if isinstance(fn_raw, dict)
+                    else "mock_tool"
+                )
+            else:
+                fn_name = getattr(getattr(tool0, "function", None), "name", "mock_tool")
             return CompletionResult(
                 text="",
                 tool_calls=[
@@ -78,7 +84,7 @@ class MockDriver:
             piece = payload[i : i + chunk_size] or payload
             yield StreamChunk(
                 data={
-                    "id": f"chatcmpl-mock",
+                    "id": "chatcmpl-mock",
                     "object": "chat.completion.chunk",
                     "choices": [
                         {

@@ -7,8 +7,9 @@ import argparse
 import json
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
 FLOORS_FILE = ROOT / "scripts" / "ci" / "coverage-floors.toml"

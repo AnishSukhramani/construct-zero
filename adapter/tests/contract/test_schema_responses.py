@@ -5,9 +5,8 @@ from __future__ import annotations
 import json
 
 import pytest
-from fastapi.testclient import TestClient
-
 from contract_util import validate
+from fastapi.testclient import TestClient
 
 
 def test_schema_health(mock_client: TestClient) -> None:

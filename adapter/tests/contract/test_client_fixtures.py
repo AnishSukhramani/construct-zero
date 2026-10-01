@@ -6,9 +6,8 @@ import json
 from pathlib import Path
 
 import pytest
-from fastapi.testclient import TestClient
-
 from contract_util import validate
+from fastapi.testclient import TestClient
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "clients"
 

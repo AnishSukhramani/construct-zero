@@ -10,7 +10,6 @@ from pathlib import Path
 
 import httpx
 import pytest
-
 from contract_util import validate
 
 ROOT = Path(__file__).resolve().parents[3]

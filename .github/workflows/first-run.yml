@@ -1,6 +1,7 @@
 name: first-run
 
 on:
+  workflow_call:
   pull_request:
   workflow_dispatch:
 
