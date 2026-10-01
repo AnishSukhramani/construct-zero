@@ -11,6 +11,7 @@ Status key: **MVP** = shipped in repo | **Stub** = placeholder only | **Out of s
 | Voice hold-to-talk sidecar | MVP | [voice/](../../voice/) | [voice-sidecar.md](voice-sidecar.md) |
 | Voice Presentation Layer (VPL) | MVP | [vpl/](../../vpl/) | [voice-vpl.md](voice-vpl.md) |
 | Public test & staged-file safety scripts | MVP | [scripts/run-tests.sh](../../scripts/run-tests.sh), [scripts/ci/](../../scripts/ci/) | [scripts.md](../references/scripts.md) |
+| GitHub CI + local `make ci` | MVP | [.github/workflows/ci.yml](../../.github/workflows/ci.yml), [Makefile](../../Makefile) | [ci.md](../references/ci.md) |
 | Claude Code driver | Stub | [adapter/src/construct_zero/drivers/claude_code.py](../../adapter/src/construct_zero/drivers/claude_code.py) | [adapter-inference.md](adapter-inference.md) |
 
 ## Out of scope (unless user explicitly requests)

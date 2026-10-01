@@ -63,7 +63,7 @@ You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 
 ## Requirements
 
-- Git, curl, Python 3.11+ (3.12 preferred)
+- Git, curl, Python 3.10+ (3.12 recommended)
 - [uv](https://docs.astral.sh/uv/) is offered during install (recommended; no Homebrew required)
 - **`CURSOR_API_KEY`** (required) — create in [Cursor dashboard](https://cursor.com/dashboard) → API Keys; stored locally in `.env` (gitignored). Usage counts against your Cursor subscription/plan.
 - Voice: `ffmpeg` (and often `espeak-ng` for Kokoro)
@@ -182,6 +182,8 @@ This project was previously named **HCX — Hermes on Cursor**. Old names still 
 Prefer `CZ_*`, `~/.construct-zero/`, and `provider: construct-zero` in new setups. After pulling, re-run `./scripts/setup.sh` and `./scripts/setup-voice.sh` so editable packages pick up the rename.
 
 ## For maintainers
+
+Run the full suite locally: `make ci` (see [docs/references/ci.md](docs/references/ci.md)).
 
 **Agents:** start at [`AGENTS.md`](AGENTS.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md). Deploy flow: [`PRE-COMMIT-CHECKLIST.md`](PRE-COMMIT-CHECKLIST.md).
 

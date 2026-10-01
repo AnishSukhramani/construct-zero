@@ -16,6 +16,14 @@ Voice browser  →  :8767  →  STT → Hermes → VPL → TTS
 
 When editing inside a subsystem, Cursor also loads that directory's `AGENTS.md`.
 
+## CI contract
+
+- **Checks:** `tests`, `guardrails` (PR 02+); more land in PRs 03–09. Stable job `name:` values — see [docs/references/ci.md](docs/references/ci.md).
+- **Local:** `make ci` → [scripts/ci-local.sh](scripts/ci-local.sh) (mirrors CI step order).
+- **Labels (Anish only):** `no-test-needed`, `test-change-approved`, `pin-bump-approved` — guardrails enforces; API actor check is best-effort.
+- **Protected paths:** `install.sh`, `config/upstream.lock.yaml`, `.github/**`, `scripts/doctor.sh`, `scripts/ci/**`, `*/uv.lock`, `.gitattributes`, `Makefile` — PR body must include `## Protected paths`.
+- **Agents:** open **draft** PRs only; ~400-line soft cap per PR (locks/format excluded); never merge or mark ready.
+
 ## Non-negotiables
 
 - **Git:** User owns all mutating git ops — agents never `add`/`commit`/`push`/`pull`
