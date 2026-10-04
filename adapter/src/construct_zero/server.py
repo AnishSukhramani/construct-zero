@@ -19,6 +19,12 @@ from construct_zero.core.streaming import sse_line
 from construct_zero.drivers.claude_code import ClaudeCodeDriver
 from construct_zero.drivers.cursor import CursorDriver
 from construct_zero.drivers.mock import MockDriver
+from construct_zero.home import admin as cz_admin
+from construct_zero.home import identity as cz_identity
+from construct_zero.home import inference_guard as cz_guard
+from construct_zero.home import kill_registry as cz_kill_registry
+from construct_zero.home import ledger as cz_ledger
+from construct_zero.home import registry as cz_registry
 from construct_zero.openai_types import (
     ChatCompletionChoice,
     ChatCompletionRequest,
@@ -40,6 +46,10 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
     app.state.config = config
     app.state.backend = backend
     app.state.sessions = sessions
+    app.state.cz_ledger_path = None  # tests may override
+    app.state.cz_budgets_path = None
+    cz_ledger.init_db(app.state.cz_ledger_path)
+    cz_admin.ensure_admin_key()
 
     @app.exception_handler(HTTPException)
     async def openai_http_exception(_request: Request, exc: HTTPException) -> JSONResponse:
@@ -71,6 +81,10 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
         if token != expected:
             raise HTTPException(status_code=401, detail="Invalid API key")
 
+    def require_admin(authorization: str | None = Header(default=None)) -> None:
+        if not cz_admin.verify_admin_key(authorization):
+            raise HTTPException(status_code=401, detail="Invalid admin key")
+
     @app.get("/health", response_model=HealthResponse)
     def health(request: Request) -> HealthResponse:
         b = request.app.state.backend
@@ -91,7 +105,11 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
         return ModelsListResponse(data=[ModelCard(id=mid, created=now) for mid in ids])
 
     @app.post("/v1/chat/completions", dependencies=[Depends(require_auth)])
-    def chat_completions(body: ChatCompletionRequest, request: Request):
+    def chat_completions(
+        body: ChatCompletionRequest,
+        request: Request,
+        authorization: str | None = Header(default=None),
+    ):
         b = request.app.state.backend
         if body.tools and b.name == "claude_code":
             raise HTTPException(
@@ -99,19 +117,92 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
                 detail="Tools not supported on claude_code stub",
             )
 
+        killed = cz_guard.check_killed()
+        if killed:
+            return JSONResponse(status_code=503, content=killed)
+
+        headers = {k.lower(): v for k, v in request.headers.items()}
+        agent, hdr_session = cz_identity.resolve_agent(headers, body, authorization)
+        session = cz_identity.session_id_from_request(agent, body, hdr_session)
+        prompt_est = cz_guard.estimate_prompt_tokens(body)
+        db_path = request.app.state.cz_ledger_path
+        bud_path = request.app.state.cz_budgets_path
+        budget_err = cz_guard.check_budget(
+            agent, session, prompt_est, budgets_path=bud_path, db_path=db_path
+        )
+        if budget_err:
+            if body.stream:
+                return StreamingResponse(
+                    _budget_stream(budget_err),
+                    media_type="text/event-stream",
+                )
+            return JSONResponse(status_code=429, content=budget_err)
+
+        req_id = f"chatcmpl-{uuid.uuid4().hex[:24]}"
         try:
             if body.stream:
                 return StreamingResponse(
-                    _stream_response(b, body),
+                    _stream_response(
+                        b,
+                        body,
+                        agent=agent,
+                        session=session,
+                        request_id=req_id,
+                        prompt_est=prompt_est,
+                        db_path=db_path,
+                    ),
                     media_type="text/event-stream",
                 )
             result = b.complete(body)
+            completion_est = cz_identity.estimate_tokens(result.text or "")
+            cz_guard.record_adapter_usage(
+                agent=agent,
+                session=session,
+                model=result.model or body.model,
+                prompt_tokens=prompt_est,
+                completion_tokens=completion_est,
+                request_id=req_id,
+                status=200,
+                db_path=db_path,
+            )
             return _to_openai_response(result, body.model)
         except HTTPException:
             raise
         except Exception as exc:
             logger.exception("chat.completions failed")
             raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    @app.get("/cz/v1/usage", dependencies=[Depends(require_admin)])
+    def cz_usage(
+        request: Request,
+        since: str | None = None,
+        until: str | None = None,
+        group_by: str = "agent",
+    ):
+        rows = cz_ledger.aggregate_usage(
+            since=since,
+            until=until,
+            group_by=group_by,
+            db_path=request.app.state.cz_ledger_path,
+        )
+        return {"data": rows}
+
+    @app.get("/cz/v1/agents", dependencies=[Depends(require_admin)])
+    def cz_agents():
+        reg = cz_registry.sync_registry()
+        return reg.to_dict()
+
+    @app.post("/cz/v1/admin/kill", dependencies=[Depends(require_admin)])
+    def cz_kill(request: Request, reason: str = ""):
+        cz_admin.set_killed(reason)
+        request.app.state.sessions.close_all()
+        cz_kill_registry.terminate_all()
+        return {"status": "killed"}
+
+    @app.post("/cz/v1/admin/unkill", dependencies=[Depends(require_admin)])
+    def cz_unkill():
+        cz_admin.clear_killed()
+        return {"status": "ok"}
 
     return app
 
@@ -151,13 +242,42 @@ def _to_openai_response(
     )
 
 
-def _stream_response(backend, body: ChatCompletionRequest) -> Iterator[str]:
+def _budget_stream(err: dict[str, Any]) -> Iterator[str]:
+    yield sse_line({"error": err.get("error") or err})
+    yield sse_line("[DONE]")
+
+
+def _stream_response(
+    backend,
+    body: ChatCompletionRequest,
+    *,
+    agent: str,
+    session: str | None,
+    request_id: str,
+    prompt_est: int,
+    db_path,
+) -> Iterator[str]:
+    completion_text = ""
     try:
         for chunk in backend.stream(body):
             yield sse_line(chunk.data)
             if chunk.done:
                 yield sse_line("[DONE]")
+                cz_guard.record_adapter_usage(
+                    agent=agent,
+                    session=session,
+                    model=body.model,
+                    prompt_tokens=prompt_est,
+                    completion_tokens=cz_identity.estimate_tokens(completion_text),
+                    request_id=request_id,
+                    status=200,
+                    db_path=db_path,
+                )
                 return
+            choices = chunk.data.get("choices") or []
+            if choices:
+                delta = choices[0].get("delta") or {}
+                completion_text += delta.get("content") or ""
         yield sse_line("[DONE]")
     except Exception as exc:
         logger.exception("stream failed")

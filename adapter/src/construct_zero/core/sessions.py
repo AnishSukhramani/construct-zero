@@ -94,6 +94,12 @@ class SessionStore:
                 return existing
         return self.create()
 
+    def close_all(self) -> None:
+        with self._lock:
+            for session in self._sessions.values():
+                session.close()
+            self._sessions.clear()
+
     def _purge_locked(self) -> None:
         now = time.time()
         dead = [
