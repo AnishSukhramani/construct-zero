@@ -13,8 +13,9 @@ import os
 import tempfile
 import threading
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Any, Iterator
+from typing import Any
 
 from construct_zero.config import CursorDriverConfig, CZConfig
 from construct_zero.core.backend import CompletionResult, HealthStatus, StreamChunk
@@ -63,7 +64,8 @@ def messages_to_prompt(messages: list[ChatMessage]) -> str:
             lines.append(f"[{role}]\n{text}")
     lines.append(
         "\n[instruction]\nRespond as the assistant. "
-        "If tools are available, call them via the provided custom tools rather than inventing results."
+        "If tools are available, call them via the provided custom tools "
+        "rather than inventing results."
     )
     return "\n\n".join(lines)
 
@@ -79,9 +81,7 @@ def _openai_tool_schema(tool: dict[str, Any]) -> tuple[str, str, dict[str, Any]]
     return (
         str(tool.get("name") or "tool"),
         str(tool.get("description") or ""),
-        tool.get("parameters")
-        or tool.get("input_schema")
-        or {"type": "object", "properties": {}},
+        tool.get("parameters") or tool.get("input_schema") or {"type": "object", "properties": {}},
     )
 
 
@@ -114,10 +114,17 @@ class ActiveRun:
 class CursorDriver:
     name = "cursor"
 
-    def __init__(self, config: CZConfig, sessions: SessionStore | None = None) -> None:
+    def __init__(
+        self,
+        config: CZConfig,
+        sessions: SessionStore | None = None,
+        *,
+        tool_wait_timeout: float = 300.0,
+    ) -> None:
         self.config = config
         self.cursor_cfg: CursorDriverConfig = config.inference.cursor
         self.sessions = sessions or SessionStore()
+        self._tool_wait_timeout = tool_wait_timeout
         self._workspace = self._make_workspace()
         self._acp = check_acp(self.cursor_cfg.agent_bin)
         self._runs: dict[str, ActiveRun] = {}
@@ -228,9 +235,7 @@ class CursorDriver:
                     "object": "chat.completion.chunk",
                     "created": created,
                     "model": result.model,
-                    "choices": [
-                        {"index": 0, "delta": {}, "finish_reason": "tool_calls"}
-                    ],
+                    "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}],
                 },
                 done=True,
             )
@@ -283,9 +288,7 @@ class CursorDriver:
             done=True,
         )
 
-    def _extract_tool_results(
-        self, messages: list[ChatMessage]
-    ) -> list[tuple[str, str]]:
+    def _extract_tool_results(self, messages: list[ChatMessage]) -> list[tuple[str, str]]:
         return [
             (m.tool_call_id, _message_text(m.content))
             for m in messages
@@ -314,9 +317,7 @@ class CursorDriver:
             local=LocalAgentOptions(**local_kwargs),
         )
 
-    def _complete_text(
-        self, request: ChatCompletionRequest, model: str
-    ) -> CompletionResult:
+    def _complete_text(self, request: ChatCompletionRequest, model: str) -> CompletionResult:
         from cursor_sdk import Agent
 
         api_key = self._api_key()
@@ -339,7 +340,10 @@ class CursorDriver:
                 raise RuntimeError(msg)
             return CompletionResult(text=text, finish_reason="stop", model=model)
 
-    def _wait_outcome(self, active: ActiveRun, timeout: float = 300.0) -> CompletionResult:
+    def _wait_outcome(
+        self, active: ActiveRun, timeout: float | None = None
+    ) -> CompletionResult:
+        timeout = self._tool_wait_timeout if timeout is None else timeout
         deadline = time.time() + timeout
         while time.time() < deadline:
             if active.batch_event.wait(timeout=0.2):
@@ -400,9 +404,7 @@ class CursorDriver:
         active.model = model or active.model
         return self._wait_outcome(active)
 
-    def _start_tool_run(
-        self, request: ChatCompletionRequest, model: str
-    ) -> CompletionResult:
+    def _start_tool_run(self, request: ChatCompletionRequest, model: str) -> CompletionResult:
         from cursor_sdk import Agent, CustomTool
 
         api_key = self._api_key()
@@ -423,16 +425,16 @@ class CursorDriver:
                     args if isinstance(args, dict) else {"value": args},
                     ensure_ascii=False,
                 )
-                pending = session.park(
-                    name=name, arguments=arguments, call_id=call_id
-                )
+                pending = session.park(name=name, arguments=arguments, call_id=call_id)
                 tc = {
                     "id": pending.call_id,
                     "type": "function",
                     "function": {"name": name, "arguments": arguments},
                 }
                 active.push_tool(tc)
-                return session.wait_result(pending.call_id, timeout=300.0)
+                return session.wait_result(
+                    pending.call_id, timeout=self._tool_wait_timeout
+                )
 
             return CustomTool(
                 description=description or f"Hermes tool {name}",
@@ -451,9 +453,7 @@ class CursorDriver:
                 custom_tools[name] = custom_tools[safe]
 
         prompt = messages_to_prompt(request.messages)
-        options = self._agent_options(
-            model=model, api_key=api_key, custom_tools=custom_tools
-        )
+        options = self._agent_options(model=model, api_key=api_key, custom_tools=custom_tools)
 
         def runner() -> None:
             try:
@@ -470,9 +470,7 @@ class CursorDriver:
                     if status == "error":
                         err = getattr(result, "error", None)
                         active.error = RuntimeError(
-                            getattr(err, "message", None)
-                            or str(err)
-                            or "run error"
+                            getattr(err, "message", None) or str(err) or "run error"
                         )
             except BaseException as exc:
                 active.error = exc

@@ -5,7 +5,8 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -17,6 +18,7 @@ from construct_zero.core.sessions import SessionStore
 from construct_zero.core.streaming import sse_line
 from construct_zero.drivers.claude_code import ClaudeCodeDriver
 from construct_zero.drivers.cursor import CursorDriver
+from construct_zero.drivers.mock import MockDriver
 from construct_zero.openai_types import (
     ChatCompletionChoice,
     ChatCompletionRequest,
@@ -38,6 +40,24 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
     app.state.config = config
     app.state.backend = backend
     app.state.sessions = sessions
+
+    @app.exception_handler(HTTPException)
+    async def openai_http_exception(_request: Request, exc: HTTPException) -> JSONResponse:
+        detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+        code = "cz_error"
+        if exc.status_code == 401:
+            code = "cz_auth_missing" if "Missing" in detail else "cz_auth_invalid"
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": {
+                    "message": detail,
+                    "type": "invalid_request_error",
+                    "code": code,
+                },
+                "detail": detail,
+            },
+        )
 
     def require_auth(
         authorization: str | None = Header(default=None),
@@ -68,9 +88,7 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
     def list_models(request: Request) -> ModelsListResponse:
         ids = request.app.state.backend.list_models()
         now = int(time.time())
-        return ModelsListResponse(
-            data=[ModelCard(id=mid, created=now) for mid in ids]
-        )
+        return ModelsListResponse(data=[ModelCard(id=mid, created=now) for mid in ids])
 
     @app.post("/v1/chat/completions", dependencies=[Depends(require_auth)])
     def chat_completions(body: ChatCompletionRequest, request: Request):
@@ -102,6 +120,8 @@ def _build_backend(config: CZConfig, sessions: SessionStore):
     backend_name = (config.inference.backend or "cursor").strip().lower()
     if backend_name in {"cursor", "hcx", "construct-zero", "cz"}:
         return CursorDriver(config, sessions=sessions)
+    if backend_name == "mock":
+        return MockDriver(sessions=sessions)
     if backend_name in {"claude_code", "claude-code"}:
         return ClaudeCodeDriver()
     raise ValueError(f"Unknown inference.backend: {backend_name}")
@@ -126,9 +146,7 @@ def _to_openai_response(
         id=f"chatcmpl-{uuid.uuid4().hex[:24]}",
         created=int(time.time()),
         model=model,
-        choices=[
-            ChatCompletionChoice(index=0, message=message, finish_reason=finish)
-        ],
+        choices=[ChatCompletionChoice(index=0, message=message, finish_reason=finish)],
         usage=result.usage,
     )
 

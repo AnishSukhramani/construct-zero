@@ -8,7 +8,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "pytest-cov>=6.0"]
 
 [build-system]
 requires = ["hatchling"]
@@ -19,3 +19,6 @@ packages = ["src/construct_zero_vpl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["construct_zero_vpl"]

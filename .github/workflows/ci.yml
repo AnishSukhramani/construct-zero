@@ -1,0 +1,294 @@
+name: CI
+
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-matrix:
+    name: package (${{ matrix.package }}, py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [adapter, vpl, voice]
+        python: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Sync and test (${{ matrix.package }})
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ matrix.package }}" in
+            adapter)
+              cd adapter
+              uv sync --locked --extra dev
+              uv run pytest -q
+              ;;
+            vpl)
+              cd vpl
+              uv sync --locked --extra dev
+              uv run pytest -q
+              ;;
+            voice)
+              cd voice
+              uv sync --locked --extra dev --no-install-project
+              uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+              uv pip install -e ".[dev]"
+              uv run pytest -q
+              ;;
+          esac
+
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    needs: test-matrix
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+
+      - name: Repo-level tests
+        run: |
+          cd adapter
+          uv sync --locked --extra dev
+          uv run pytest -q ../tests/repo
+
+      - name: Matrix summary
+        run: echo "All package matrix jobs passed."
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+      - name: Ruff
+        run: |
+          cd adapter && uv sync --locked --extra dev
+          uv run ruff check ../adapter ../vpl ../voice ../hermes-plugin ../tests
+
+  types:
+    name: types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+      - name: mypy
+        run: |
+          cd adapter && uv sync --locked --extra dev && uv run mypy
+          cd ..
+          uv run --project adapter mypy --config-file vpl/mypy.ini
+          uv run --project adapter mypy --config-file voice/mypy.ini
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: shellcheck
+        run: |
+          shellcheck install.sh construct-zero scripts/*.sh scripts/lib/*.sh
+
+  secrets:
+    name: secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        run: bash scripts/ci/gitleaks.sh
+
+  deps-audit:
+    name: deps-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+      - name: pip-audit
+        env:
+          CI: "true"
+        run: bash scripts/ci/deps-audit.sh
+
+  license:
+    name: license
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+      - name: pip-licenses
+        run: |
+          cd adapter && uv sync --locked --extra dev
+          python3 scripts/ci/license-check.py
+
+  dependency-review:
+    name: dependency-review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: actions/dependency-review-action@3a1417735e1a3b389162e94d4b5912a906a45ef0
+        with:
+          fail-on-severity: high
+
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+
+      - name: Install voice deps (CPU torch)
+        run: |
+          cd voice
+          uv sync --locked --extra dev --no-install-project
+          uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+          uv pip install -e ".[dev]"
+
+      - name: Coverage floors
+        env:
+          CI: "true"
+        run: |
+          cd adapter && uv sync --locked --extra dev
+          cd ../vpl && uv sync --locked --extra dev
+          python3 scripts/ci/coverage-check.py --package all
+
+  contract:
+    name: contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+      - run: |
+          cd adapter && uv sync --locked --extra dev
+          uv run pytest -q tests/contract
+
+  conformance:
+    name: conformance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+      - uses: actions/setup-python@0a5c615913736835b9f498ebfc067dbe23224892
+        with:
+          python-version: "3.12"
+      - run: |
+          cd adapter && uv sync --locked --extra dev
+          uv run pytest -q tests/conformance
+
+  lock-changed:
+    name: lock-changed
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+      pinned_ref: ${{ steps.check.outputs.pinned_ref }}
+      main_ref: ${{ steps.check.outputs.main_ref }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+        with:
+          fetch-depth: 0
+      - id: check
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$base"...HEAD | grep -qx 'config/upstream.lock.yaml'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            pinned="$(python3 -c "import yaml; print(yaml.safe_load(open('config/upstream.lock.yaml'))['hermes']['ref'])")"
+            echo "pinned_ref=$pinned" >> "$GITHUB_OUTPUT"
+            main_ref="$(git ls-remote https://github.com/NousResearch/hermes-agent.git refs/heads/main | awk '{print $1}')"
+            echo "main_ref=$main_ref" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  hermes-pinned-pin:
+    name: hermes-pinned (lock ref)
+    needs: lock-changed
+    if: needs.lock-changed.outputs.changed == 'true'
+    uses: ./.github/workflows/hermes-pinned.yml
+    with:
+      hermes_ref: ${{ needs.lock-changed.outputs.pinned_ref }}
+
+  hermes-pinned-main:
+    name: hermes-pinned (main canary)
+    needs: lock-changed
+    if: needs.lock-changed.outputs.changed == 'true'
+    uses: ./.github/workflows/hermes-pinned.yml
+    with:
+      hermes_ref: ${{ needs.lock-changed.outputs.main_ref }}
+
+  pin-bump:
+    name: pin-bump
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+        with:
+          fetch-depth: 0
+      - name: Pin bump policy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/ci/pin_bump_check.py
+
+  guardrails:
+    name: guardrails
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+        with:
+          fetch-depth: 0
+
+      - name: Policy checks
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/ci/guardrails.py

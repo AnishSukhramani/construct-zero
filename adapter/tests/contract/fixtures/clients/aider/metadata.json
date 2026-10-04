@@ -1,0 +1,6 @@
+{
+  "client": "aider",
+  "recorded_at": "2026-01-01T00:00:00Z",
+  "note": "Synthetic fixture for contract replay",
+  "base_path": "/v1/chat/completions"
+}

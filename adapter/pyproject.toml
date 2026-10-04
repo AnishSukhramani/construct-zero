@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0", "pytest-cov>=6.0"]
 cli = ["rich>=13", "pyfiglet>=1.0"]
 
 [project.scripts]
@@ -31,3 +31,35 @@ packages = ["src/construct_zero"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = false
+source = ["construct_zero"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = false
+check_untyped_defs = false
+files = ["src/construct_zero"]
+
+[[tool.mypy.overrides]]
+module = "construct_zero.drivers.cursor"
+ignore_errors = true
+
+[dependency-groups]
+dev = [
+    "jsonschema>=4.26.0",
+    "mypy>=2.3.1",
+    "pip-audit>=2.10.1",
+    "pip-licenses>=5.5.5",
+    "pre-commit>=4.6.2",
+    "ruff>=0.16.9",
+    "types-pyyaml>=6.0.12.20260906",
+]

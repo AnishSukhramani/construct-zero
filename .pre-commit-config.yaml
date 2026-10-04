@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.9
+    hooks:
+      - id: ruff
+        args: [--config, ruff.toml]
+      - id: ruff-format
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [-x, bash]
+        files: ^(install\.sh|construct-zero|scripts/.*\.sh)$
+
+  - repo: local
+    hooks:
+      - id: verify-staged
+        name: verify-staged
+        entry: scripts/ci/verify-staged.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: run-tests-fast
+        name: run-tests --fast
+        entry: scripts/run-tests.sh --fast
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
