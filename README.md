@@ -4,6 +4,10 @@
 
 </p>
 
+> **Using Construct Zero?** [Tell us how (2 min)](https://github.com/AnishSukhramani/construct-zero/discussions) · Stuck? [Help / Setup](https://github.com/AnishSukhramani/construct-zero/discussions/categories/help-setup) · Free & MIT. Usage bills your own Cursor plan.
+
+**Before you install:** You need a Cursor plan that can create an API key; usage counts against that plan. Overview on the [Construct Zero site](https://construct-zero.vercel.app/?utm_source=github&utm_medium=readme&utm_campaign=launch-oct26).
+
 <div align="center">
 
 ```bash
@@ -199,6 +203,8 @@ git status   # Construct-Zero-owned paths only
 ```
 
 On GitHub, confirm there is no `hermes/` folder in the repo tree.
+
+> **Using Construct Zero?** [Tell us how (2 min)](https://github.com/AnishSukhramani/construct-zero/discussions) · Stuck? [Help / Setup](https://github.com/AnishSukhramani/construct-zero/discussions/categories/help-setup) · Free & MIT. Usage bills your own Cursor plan.
 
 ## License
 
