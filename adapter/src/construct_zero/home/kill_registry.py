@@ -6,7 +6,6 @@ import os
 import signal
 import subprocess
 import time
-from typing import Callable
 
 _pids: set[int] = set()
 

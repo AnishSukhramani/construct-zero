@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
 
 from construct_zero.home.lockfile import cz_file_lock
 from construct_zero.home.paths import project_cz_dir
@@ -164,7 +164,12 @@ class CzStore:
             return DEFAULT_MEMORY
         return path.read_text(encoding="utf-8")
 
-    def write_memory(self, text: str, *, expected_hashes: dict[str, str] | None = None) -> list[str]:
+    def write_memory(
+        self,
+        text: str,
+        *,
+        expected_hashes: dict[str, str] | None = None,
+    ) -> list[str]:
         """Write MEMORY.md; on hash conflict append to MEMORY.conflicts.md. Returns warnings."""
         warnings: list[str] = []
         with cz_file_lock(self.lock_path):
@@ -179,9 +184,11 @@ class CzStore:
                         if conflict_path.exists():
                             block = conflict_path.read_text(encoding="utf-8") + "\n" + block
                         atomic_write(conflict_path, block)
-                        warnings.append(
-                            f"Memory entry {eid} changed concurrently; copy saved to MEMORY.conflicts.md"
+                        msg = (
+                            f"Memory entry {eid} changed concurrently; "
+                            "copy saved to MEMORY.conflicts.md"
                         )
+                        warnings.append(msg)
             atomic_write(self.root / "MEMORY.md", text)
         return warnings
 
@@ -211,7 +218,14 @@ class CzStore:
         self.write_memory(text)
         return eid
 
-    def memory_supersede(self, entry_id: str, new_title: str, new_body: str, *, by: str = "user") -> str:
+    def memory_supersede(
+        self,
+        entry_id: str,
+        new_title: str,
+        new_body: str,
+        *,
+        by: str = "user",
+    ) -> str:
         if not ENTRY_ID_RE.match(entry_id):
             raise ValueError(f"invalid memory id: {entry_id}")
         text = self.read_memory()
@@ -271,7 +285,13 @@ class CzStore:
 
     def status_summary(self) -> dict:
         mem = self.memory_list(include_all=True)
-        agent_written = sum(1 for e in mem if "- by:" in e.body and "user" not in e.body.split("- by:")[1][:20])
+        def _agent_authored(entry: MemoryEntry) -> bool:
+            if "- by:" not in entry.body:
+                return False
+            author = entry.body.split("- by:")[1][:20]
+            return "user" not in author
+
+        agent_written = sum(1 for e in mem if _agent_authored(e))
         return {
             "project": str(self.project),
             "cz_dir": str(self.root),

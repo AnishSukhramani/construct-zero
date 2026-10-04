@@ -7,7 +7,6 @@ import hmac
 import json
 import secrets
 from pathlib import Path
-from typing import Any
 
 from construct_zero.home.paths import cz_state_dir
 from construct_zero.openai_types import ChatCompletionRequest

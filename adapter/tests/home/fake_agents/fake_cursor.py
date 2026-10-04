@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fake Cursor agent CLI for integration tests."""
+
 import sys
 
 for i, arg in enumerate(sys.argv):

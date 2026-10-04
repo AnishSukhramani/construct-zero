@@ -9,15 +9,15 @@ import subprocess
 import sys
 import termios
 import tty
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
+from construct_zero.home import kill_registry as cz_kill_registry
+from construct_zero.home import registry as reg_mod
 from construct_zero.home.checkpoint import handoff_prompt, write_checkpoint
 from construct_zero.home.importers.base import import_checkpoint
 from construct_zero.home.quota import match_quota
-from construct_zero.home import kill_registry as cz_kill_registry
-from construct_zero.home import registry as reg_mod
 
 AGENT_ALIASES = {
     "claude": "claude-code",
@@ -109,12 +109,12 @@ def run_agent(
         cz_kill_registry.register_pid(proc.pid)
         out, err = proc.communicate()
         cz_kill_registry.unregister_pid(proc.pid)
-        proc = subprocess.CompletedProcess(cmd, proc.returncode, out, err)
-        out = (proc.stdout or "") + (proc.stderr or "")
-        collected.append(out)
-        sys.stdout.write(proc.stdout or "")
-        sys.stderr.write(proc.stderr or "")
-        if match_quota(agent_id, out):
+        returncode = proc.returncode if proc.returncode is not None else 0
+        combined = (out or "") + (err or "")
+        collected.append(combined)
+        sys.stdout.write(out or "")
+        sys.stderr.write(err or "")
+        if match_quota(agent_id, combined):
             _handle_quota()
         handoff = None
         if quota and auto_handoff:
@@ -122,10 +122,10 @@ def run_agent(
             if nxt:
                 handoff = nxt
                 _launch_handoff(nxt, agent_id, project)
-        return RunResult(proc.returncode, quota, handoff)
+        return RunResult(returncode, quota, handoff)
 
     master, slave = pty.openpty()
-    proc = subprocess.Popen(
+    pty_proc = subprocess.Popen(
         cmd,
         stdin=slave,
         stdout=slave,
@@ -134,7 +134,7 @@ def run_agent(
         close_fds=True,
         start_new_session=True,
     )
-    cz_kill_registry.register_pid(proc.pid)
+    cz_kill_registry.register_pid(pty_proc.pid)
     os.close(slave)
     try:
         old = termios.tcgetattr(sys.stdin)
@@ -159,7 +159,7 @@ def run_agent(
                     if auto_handoff:
                         nxt = next_fallback(agent_id)
                         if nxt:
-                            proc.terminate()
+                            pty_proc.terminate()
                             _launch_handoff(nxt, agent_id, project)
                             return RunResult(0, True, nxt)
                     break
@@ -171,9 +171,9 @@ def run_agent(
                 if not data:
                     break
                 os.write(master, data)
-            if proc.poll() is not None:
+            if pty_proc.poll() is not None:
                 break
-        code = proc.wait(timeout=5)
+        code = pty_proc.wait(timeout=5)
     finally:
         if old is not None:
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old)

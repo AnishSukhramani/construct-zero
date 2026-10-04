@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fake Hermes CLI."""
+
 import sys
 
 if "-q" in sys.argv:

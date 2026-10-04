@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fake Claude CLI for integration tests."""
+
 import sys
 
 print("Working…")

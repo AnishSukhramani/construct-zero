@@ -4,14 +4,18 @@ from __future__ import annotations
 
 import re
 import subprocess
-from dataclasses import dataclass
 from pathlib import Path
 
 MARKER_START = "<!-- cz:home:start -->"
 MARKER_END = "<!-- cz:home:end -->"
 
+_CZ_READ_FIRST = (
+    "Shared CZ context lives in `.cz/`. Read `.cz/CONTEXT.md`, `.cz/MEMORY.md`, "
+    "and `.cz/checkpoint.md` first."
+)
+
 AGENTS_BLOCK = f"""{MARKER_START}
-Shared CZ context lives in `.cz/`. Read `.cz/CONTEXT.md`, `.cz/MEMORY.md`, and `.cz/checkpoint.md` first.
+{_CZ_READ_FIRST}
 Write decisions to `.cz/DECISIONS.md` and update `.cz/checkpoint.md` before you stop.
 {MARKER_END}"""
 
@@ -31,12 +35,13 @@ alwaysApply: true
 ---
 
 """ + f"""{MARKER_START}
-Shared CZ context lives in `.cz/`. Read `.cz/CONTEXT.md`, `.cz/MEMORY.md`, and `.cz/checkpoint.md` first.
+{_CZ_READ_FIRST}
 Write decisions to `.cz/DECISIONS.md` and update `.cz/checkpoint.md` before you stop.
 {MARKER_END}"""
 
 HERMES_MEMORY_LINE = (
-    "CZ shared context: read .cz/CONTEXT.md, .cz/MEMORY.md, .cz/checkpoint.md (construct-zero home)."
+    "CZ shared context: read .cz/CONTEXT.md, .cz/MEMORY.md, .cz/checkpoint.md "
+    "(construct-zero home)."
 )
 
 
@@ -147,7 +152,8 @@ def apply_pointers(
                 if len(text) + len(HERMES_MEMORY_LINE) + 2 > 2200:
                     pass  # skip silently per char limit
                 else:
-                    mem.write_text(text.rstrip() + "\n" + HERMES_MEMORY_LINE + "\n", encoding="utf-8")
+                    appended = text.rstrip() + "\n" + HERMES_MEMORY_LINE + "\n"
+                    mem.write_text(appended, encoding="utf-8")
                     touched.append("~/.hermes/MEMORY.md (append)")
 
     return touched

@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+
 import httpx
 
 from construct_zero.home import admin as cz_admin
@@ -24,11 +25,12 @@ def _parse_run_args(rest: list[str]) -> tuple[list[str], list[str]]:
 def cmd_run(args: argparse.Namespace) -> int:
     agent_args = args.agent_args or []
     try:
+        use_pty: bool | None = False if args.no_pty else None
         result = run_agent(
             args.agent,
             agent_args,
             auto_handoff=args.auto_handoff,
-            use_pty=not args.no_pty,
+            use_pty=use_pty,
         )
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)

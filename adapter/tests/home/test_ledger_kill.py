@@ -5,15 +5,14 @@ import time
 from pathlib import Path
 
 import yaml
-from fastapi.testclient import TestClient
-
 from construct_zero.config import CZConfig
+from construct_zero.core.backend import CompletionResult, HealthStatus, StreamChunk
 from construct_zero.home import admin as cz_admin
 from construct_zero.home import kill_registry as cz_kill_registry
-from construct_zero.home.ledger import assert_schema_no_content_columns, init_db, record_usage
-from construct_zero.core.backend import CompletionResult, HealthStatus, StreamChunk
+from construct_zero.home.ledger import assert_schema_no_content_columns, init_db
 from construct_zero.openai_types import ChatCompletionRequest
 from construct_zero.server import create_app
+from fastapi.testclient import TestClient
 
 
 class FakeBackend:
@@ -103,8 +102,7 @@ def test_kill_503_and_admin_auth(tmp_path: Path, monkeypatch) -> None:
     admin = cz_admin.ensure_admin_key()
     assert client.get("/cz/v1/usage").status_code == 401
     assert (
-        client.get("/cz/v1/usage", headers={"Authorization": f"Bearer {admin}"}).status_code
-        == 200
+        client.get("/cz/v1/usage", headers={"Authorization": f"Bearer {admin}"}).status_code == 200
     )
     client.post("/cz/v1/admin/kill", headers={"Authorization": f"Bearer {admin}"})
     r = client.post(

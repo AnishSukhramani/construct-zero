@@ -1,5 +1,6 @@
-from construct_zero.home.checkpoint import Checkpoint, parse_checkpoint, write_checkpoint
 from pathlib import Path
+
+from construct_zero.home.checkpoint import Checkpoint, parse_checkpoint, write_checkpoint
 
 
 def test_checkpoint_roundtrip(tmp_path: Path) -> None:

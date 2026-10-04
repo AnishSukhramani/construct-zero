@@ -56,7 +56,9 @@ def test_conflict_file_on_hash_mismatch(tmp_path: Path) -> None:
     assert (tmp_path / ".cz" / "MEMORY.conflicts.md").is_file()
 
 
-def _lock_holder(lock_path: str, ready: multiprocessing.Event, release: multiprocessing.Event) -> None:
+def _lock_holder(
+    lock_path: str, ready: multiprocessing.Event, release: multiprocessing.Event
+) -> None:
     import fcntl
 
     fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
