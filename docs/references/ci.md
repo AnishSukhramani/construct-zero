@@ -19,6 +19,7 @@ Implementation: [`scripts/ci-local.sh`](../../scripts/ci-local.sh) and [`Makefil
 | `lint` | Ruff | adapter/vpl/voice/hermes-plugin/tests |
 | `types` | mypy | Lenient per-package baselines |
 | `shellcheck` | Shell scripts | install.sh, construct-zero, scripts/*.sh |
+| `action-pins` | `verify-action-pins.py` | SHA-pinned `uses:` must match `# vX.Y.Z` via `git ls-remote` |
 | `secrets` | gitleaks | PR diff |
 | `deps-audit` | pip-audit | Lockfile exports; `scripts/ci/audit-ignore.toml` |
 | `license` | pip-licenses | `scripts/ci/license-allowlist.toml` |

@@ -15,7 +15,7 @@ jobs:
     container:
       image: ubuntu:24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Install minimal OS deps
         run: apt-get update && apt-get install -y git curl python3 ca-certificates
@@ -44,7 +44,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/upload-artifact@26f96df3d41fa9003ed2128245743547c2f8947a
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: first-run-timing
           path: first-run-timing.txt
@@ -54,6 +54,6 @@ jobs:
     runs-on: macos-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1634508e2153e83e015b5c7854
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - run: |
           echo "Advisory macOS unboxing — set repo variable FIRST_RUN_MACOS_BLOCKING=1 to make this job blocking (reversible)."

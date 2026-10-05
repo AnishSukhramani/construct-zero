@@ -34,6 +34,14 @@ run_types() {
   cd "$ROOT" && uv run --project adapter mypy --config-file voice/mypy.ini
 }
 
+run_action_pins() {
+  if [[ "${ACTION_PINS_SKIP:-}" == "1" ]]; then
+    echo "action-pins: skipped (ACTION_PINS_SKIP=1)"
+    return 0
+  fi
+  python3 "$ROOT/scripts/ci/verify-action-pins.py"
+}
+
 run_shellcheck() {
   if ! command -v shellcheck >/dev/null 2>&1; then
     echo "shellcheck: not installed — skip (CI runs shellcheck on Ubuntu)"
@@ -95,6 +103,7 @@ case "$STEP" in
     run_tests
     run_lint
     run_types
+    run_action_pins
     run_shellcheck
     run_secrets
     run_deps_audit
