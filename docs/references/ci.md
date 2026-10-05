@@ -23,7 +23,7 @@ Implementation: [`scripts/ci-local.sh`](../../scripts/ci-local.sh) and [`Makefil
 | `secrets` | gitleaks | PR diff |
 | `deps-audit` | pip-audit | Lockfile exports; `scripts/ci/audit-ignore.toml` |
 | `license` | pip-licenses | `scripts/ci/license-allowlist.toml` |
-| `dependency-review` | GitHub | PR dependency changes |
+| `dependency-review` | GitHub | PR dependency changes — requires [Dependency graph](https://github.com/AnishSukhramani/construct-zero/settings/security_analysis) enabled on the repo |
 | `coverage` | pytest-cov | `scripts/ci/coverage-check.py` + floors |
 | `guardrails` | PRs only | Policy on diffs; no-op on push to `main` |
 
