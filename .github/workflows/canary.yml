@@ -1,0 +1,28 @@
+name: canary
+
+on:
+  schedule:
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-hermes-main:
+    name: resolve-hermes-main
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.main.outputs.ref }}
+    steps:
+      - id: main
+        run: |
+          ref="$(git ls-remote https://github.com/NousResearch/hermes-agent.git refs/heads/main | awk '{print $1}')"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+
+  hermes-canary:
+    name: hermes-canary
+    needs: resolve-hermes-main
+    uses: ./.github/workflows/hermes-pinned.yml
+    with:
+      hermes_ref: ${{ needs.resolve-hermes-main.outputs.ref }}

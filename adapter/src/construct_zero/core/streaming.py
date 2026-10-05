@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 
 def completion_id() -> str:
@@ -51,9 +52,7 @@ def text_stream_chunks(
                 "object": "chat.completion.chunk",
                 "created": created,
                 "model": model,
-                "choices": [
-                    {"index": 0, "delta": {"content": piece}, "finish_reason": None}
-                ],
+                "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}],
             }
         )
     yield sse_line(

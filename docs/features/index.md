@@ -10,7 +10,10 @@ Status key: **MVP** = shipped in repo | **Stub** = placeholder only | **Out of s
 | Hermes Construct-Zero provider plugin | MVP | [hermes-plugin/](../../hermes-plugin/) | [hermes-plugin.md](hermes-plugin.md) |
 | Voice hold-to-talk sidecar | MVP | [voice/](../../voice/) | [voice-sidecar.md](voice-sidecar.md) |
 | Voice Presentation Layer (VPL) | MVP | [vpl/](../../vpl/) | [voice-vpl.md](voice-vpl.md) |
+| Public test & staged-file safety scripts | MVP | [scripts/run-tests.sh](../../scripts/run-tests.sh), [scripts/ci/](../../scripts/ci/) | [scripts.md](../references/scripts.md) |
+| GitHub CI + local `make ci` | MVP | [.github/workflows/ci.yml](../../.github/workflows/ci.yml), [Makefile](../../Makefile) | [ci.md](../references/ci.md) |
 | Claude Code driver | Stub | [adapter/src/construct_zero/drivers/claude_code.py](../../adapter/src/construct_zero/drivers/claude_code.py) | [adapter-inference.md](adapter-inference.md) |
+| Agent home (shared `.cz/` context) | Preview | [adapter/src/construct_zero/home/](../../adapter/src/construct_zero/home/) | [agent-home.md](agent-home.md) |
 
 ## Out of scope (unless user explicitly requests)
 
@@ -18,7 +21,7 @@ Status key: **MVP** = shipped in repo | **Stub** = placeholder only | **Out of s
 - Claude Code driver implementation (beyond stub)
 - Public exposure of adapter port (must stay loopback)
 - Cursor Cloud / iOS profiles
-- Second agent brain inside Construct-Zero (Hermes owns tools)
+- Second agent *loop* inside Construct-Zero (CZ hosts context and orchestrates external agents only; Hermes owns tools)
 - Vendoring Hermes source in this repo
 
 ## Nested agent entrypoints

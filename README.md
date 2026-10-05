@@ -4,6 +4,10 @@
 
 </p>
 
+> **Using Construct Zero?** [Tell us how (2 min)](https://github.com/AnishSukhramani/construct-zero/discussions) · Stuck? [Help / Setup](https://github.com/AnishSukhramani/construct-zero/discussions/categories/help-setup) · Free & MIT. Usage bills your own Cursor plan.
+
+**Before you install:** You need a Cursor plan that can create an API key; usage counts against that plan. Overview on the [Construct Zero site](https://construct-zero.vercel.app/?utm_source=github&utm_medium=readme&utm_campaign=launch-oct26).
+
 <div align="center">
 
 ```bash
@@ -61,9 +65,11 @@ You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 
 `scripts/start.sh`, `scripts/doctor.sh`, and `scripts/init.sh` still work.
 
+**Preview:** `./construct-zero home init` adds a shared `.cz/` context store for Claude, Cursor, and Hermes — see [docs/features/agent-home.md](docs/features/agent-home.md).
+
 ## Requirements
 
-- Git, curl, Python 3.11+ (3.12 preferred)
+- Git, curl, Python 3.10+ (3.12 recommended)
 - [uv](https://docs.astral.sh/uv/) is offered during install (recommended; no Homebrew required)
 - **`CURSOR_API_KEY`** (required) — create in [Cursor dashboard](https://cursor.com/dashboard) → API Keys; stored locally in `.env` (gitignored). Usage counts against your Cursor subscription/plan.
 - Voice: `ffmpeg` (and often `espeak-ng` for Kokoro)
@@ -183,6 +189,8 @@ Prefer `CZ_*`, `~/.construct-zero/`, and `provider: construct-zero` in new setup
 
 ## For maintainers
 
+Run the full suite locally: `make ci` (see [docs/references/ci.md](docs/references/ci.md)).
+
 **Agents:** start at [`AGENTS.md`](AGENTS.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md). Deploy flow: [`PRE-COMMIT-CHECKLIST.md`](PRE-COMMIT-CHECKLIST.md).
 
 `hermes/`, `.venvs/`, `.env`, `config/construct-zero.yaml`, `zzz-docs/`, and `private/` are gitignored. After `./scripts/setup.sh`, **`git add .` is safe** — Hermes source is never committed.
@@ -197,6 +205,8 @@ git status   # Construct-Zero-owned paths only
 ```
 
 On GitHub, confirm there is no `hermes/` folder in the repo tree.
+
+> **Using Construct Zero?** [Tell us how (2 min)](https://github.com/AnishSukhramani/construct-zero/discussions) · Stuck? [Help / Setup](https://github.com/AnishSukhramani/construct-zero/discussions/categories/help-setup) · Free & MIT. Usage bills your own Cursor plan.
 
 ## License
 

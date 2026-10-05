@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["id", "object", "created", "model", "choices"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^chatcmpl-" },
+    "object": { "const": "chat.completion" },
+    "created": { "type": "integer" },
+    "model": { "type": "string" },
+    "choices": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["index", "message", "finish_reason"],
+        "properties": {
+          "index": { "type": "integer" },
+          "message": {
+            "type": "object",
+            "required": ["role"],
+            "properties": {
+              "role": { "enum": ["assistant", "tool"] },
+              "content": { "type": ["string", "null"] },
+              "tool_calls": { "type": "array" }
+            },
+            "additionalProperties": true
+          },
+          "finish_reason": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "usage": { "type": ["object", "null"] }
+  },
+  "additionalProperties": true
+}

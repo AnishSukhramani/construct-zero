@@ -1,0 +1,12 @@
+target-version = "py310"
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM114", "SIM118", "SIM201"]
+
+[lint.per-file-ignores]
+"tests/**" = ["SIM"]
+"adapter/tests/**" = ["SIM", "E501"]
+"vpl/tests/**" = ["SIM"]
+"voice/tests/**" = ["SIM", "E501"]
+"**/server.py" = ["B008"]

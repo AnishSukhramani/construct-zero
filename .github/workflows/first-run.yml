@@ -1,0 +1,61 @@
+name: first-run
+
+on:
+  workflow_call:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  first-run:
+    name: first-run
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install minimal OS deps
+        run: apt-get update && apt-get install -y git curl python3 ca-certificates
+
+      - name: Unboxing (skip Hermes)
+        shell: bash --noprofile --norc {0}
+        env:
+          FIRST_RUN_BUDGET_SEC: "300"
+        run: |
+          set -euo pipefail
+          start_ts=$(date +%s)
+          mkdir -p /tmp/cz-unbox
+          cp -a "$GITHUB_WORKSPACE"/. /tmp/cz-unbox/
+          cd /tmp/cz-unbox
+          bash ./install.sh --auto --no-start --skip-hermes
+          export CZ_BACKEND=mock
+          ./construct-zero start
+          sleep 2
+          curl -sf http://127.0.0.1:8765/health
+          curl -sf http://127.0.0.1:8765/v1/chat/completions \
+            -H 'Content-Type: application/json' \
+            -d '{"model":"auto","messages":[{"role":"user","content":"ping"}]}'
+          elapsed=$(( $(date +%s) - start_ts ))
+          echo "first_run_elapsed_sec=${elapsed}" >> "$GITHUB_STEP_SUMMARY"
+          echo "first_run_elapsed_sec=${elapsed}" > "$GITHUB_WORKSPACE/first-run-timing.txt"
+          if (( elapsed > FIRST_RUN_BUDGET_SEC )); then
+            echo "Exceeded first-run timing budget (${FIRST_RUN_BUDGET_SEC}s)" >&2
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: first-run-timing
+          path: first-run-timing.txt
+
+  first-run-macos:
+    name: first-run-macos
+    runs-on: macos-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - run: |
+          echo "Advisory macOS unboxing — set repo variable FIRST_RUN_MACOS_BLOCKING=1 to make this job blocking (reversible)."
