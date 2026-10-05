@@ -51,25 +51,25 @@ run_pkg() {
 FAILED=()
 STATUS=0
 
-if ! run_pkg vpl "$ROOT/vpl" uv run pytest -q; then
+if ! run_pkg vpl "$ROOT/vpl" bash -c 'uv sync --locked --extra dev && uv run pytest -q'; then
   FAILED+=("vpl")
   STATUS=1
 fi
 
-if ! run_pkg adapter "$ROOT/adapter" uv run pytest -q; then
+if ! run_pkg adapter "$ROOT/adapter" bash -c 'uv sync --locked --extra dev && uv run pytest -q'; then
   FAILED+=("adapter")
   STATUS=1
 fi
 
 if [[ "$MODE" != "fast" ]]; then
-  if ! run_pkg voice "$ROOT/voice" uv run pytest -q; then
+  if ! run_pkg voice "$ROOT/voice" bash -c 'uv sync --locked --extra dev --no-install-project && uv run pytest -q'; then
     FAILED+=("voice")
     STATUS=1
   fi
 fi
 
 if [[ "${CZ_RUN_TESTS_NESTED:-}" != "1" ]]; then
-  if ! run_pkg repo "$ROOT/adapter" uv run pytest -q ../tests/repo; then
+  if ! run_pkg repo "$ROOT/adapter" bash -c 'uv sync --locked --extra dev && uv run pytest -q ../tests/repo'; then
     FAILED+=("repo")
     STATUS=1
   fi

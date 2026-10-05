@@ -21,7 +21,6 @@ jobs:
         run: apt-get update && apt-get install -y git curl python3 ca-certificates
 
       - name: Unboxing (skip Hermes)
-        working-directory: /tmp/cz-unbox
         env:
           FIRST_RUN_BUDGET_SEC: "300"
         run: |

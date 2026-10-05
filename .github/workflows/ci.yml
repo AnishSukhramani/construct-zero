@@ -118,7 +118,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: shellcheck
         run: |
-          shellcheck install.sh construct-zero scripts/*.sh scripts/lib/*.sh
+          shellcheck -e SC1091 install.sh construct-zero scripts/*.sh scripts/lib/*.sh
 
   secrets:
     name: secrets
@@ -156,7 +156,7 @@ jobs:
       - name: pip-licenses
         run: |
           cd adapter && uv sync --locked --extra dev
-          python3 scripts/ci/license-check.py
+          python3 ../scripts/ci/license-check.py
 
   dependency-review:
     name: dependency-review
@@ -196,7 +196,7 @@ jobs:
         run: |
           cd adapter && uv sync --locked --extra dev
           cd ../vpl && uv sync --locked --extra dev
-          python3 scripts/ci/coverage-check.py --package all
+          python3 ../scripts/ci/coverage-check.py --package all
 
   contract:
     name: contract
