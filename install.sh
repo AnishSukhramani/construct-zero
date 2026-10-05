@@ -77,20 +77,18 @@ cz_apply_isolation "$INSTALL_DIR"
 echo "==> Starting onboarding"
 echo "    You will be asked for CURSOR_API_KEY (Cursor dashboard → API Keys)."
 echo "    The key is saved to .env here only — never committed to git."
-if [[ -r /dev/tty ]]; then
+_has_auto=0
+for _arg in "$@"; do
+  if [[ "$_arg" == "--auto" ]]; then
+    _has_auto=1
+    break
+  fi
+done
+if [[ "$_has_auto" == "1" ]]; then
+  "$INSTALL_DIR/scripts/init.sh" "$@"
+elif [[ -r /dev/tty && -c /dev/tty ]]; then
   "$INSTALL_DIR/scripts/init.sh" "$@" </dev/tty
 else
   echo "==> No TTY — running non-interactive (--auto). Pass keys via env or --cursor-key."
-  _has_auto=0
-  for _arg in "$@"; do
-    if [[ "$_arg" == "--auto" ]]; then
-      _has_auto=1
-      break
-    fi
-  done
-  if [[ "$_has_auto" == "1" ]]; then
-    "$INSTALL_DIR/scripts/init.sh" "$@"
-  else
-    "$INSTALL_DIR/scripts/init.sh" --auto "$@"
-  fi
+  "$INSTALL_DIR/scripts/init.sh" --auto "$@"
 fi
