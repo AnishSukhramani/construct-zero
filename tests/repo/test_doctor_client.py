@@ -78,6 +78,7 @@ def _normalize_doctor_output(text: str) -> str:
     text = re.sub(r"127\.0\.0\.1:\d+", "127.0.0.1:PORT", text)
     text = re.sub(r"CZ_PORT=\d+", "CZ_PORT=PORT", text)
     text = re.sub(r'"created":\s*\d+', '"created": 0', text)
+    text = re.sub(r"/home/[^/\s]+/", "$HOME/", text)
     return text
 
 
@@ -96,9 +97,6 @@ def test_doctor_default_matches_snapshot(mock_adapter_env: dict[str, str]) -> No
     proc = _run_doctor([], mock_adapter_env)
     combined = _normalize_doctor_output(proc.stdout + proc.stderr)
     snap_path.parent.mkdir(parents=True, exist_ok=True)
-    if not snap_path.exists():
-        snap_path.write_text(combined)
-        pytest.skip("wrote initial doctor_default_ok snapshot")
     expected = snap_path.read_text()
     assert combined == expected
     assert proc.returncode == 0
