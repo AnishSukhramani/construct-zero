@@ -53,9 +53,19 @@ class ChatCompletionResponse(BaseModel):
     usage: dict[str, int] | None = None
 
 
+class BackendCapabilities(BaseModel):
+    tools: bool
+    streaming: str
+    vision: bool
+    usage: bool
+    max_context: int | None = None
+
+
 class HealthResponse(BaseModel):
     status: Literal["ok", "degraded", "error"]
     version: str
     backend: str
     cursor_key_present: bool
     detail: str | None = None
+    capabilities: BackendCapabilities | None = None
+    backends_available: list[str] | None = None

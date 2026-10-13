@@ -13,12 +13,17 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from construct_zero import __version__
 from construct_zero.config import CZConfig, load_config
-from construct_zero.core.backend import CompletionResult
+from construct_zero.core.backend import CompletionResult, InferenceBackend
+from construct_zero.core.registry import (
+    build as build_backend,
+    capabilities_for,
+    list_backend_names,
+    parse_routed_model,
+    resolve as resolve_backend_name,
+    routing_enabled,
+)
 from construct_zero.core.sessions import SessionStore
 from construct_zero.core.streaming import sse_line
-from construct_zero.drivers.claude_code import ClaudeCodeDriver
-from construct_zero.drivers.cursor import CursorDriver
-from construct_zero.drivers.mock import MockDriver
 from construct_zero.home import admin as cz_admin
 from construct_zero.home import identity as cz_identity
 from construct_zero.home import inference_guard as cz_guard
@@ -26,9 +31,11 @@ from construct_zero.home import kill_registry as cz_kill_registry
 from construct_zero.home import ledger as cz_ledger
 from construct_zero.home import registry as cz_registry
 from construct_zero.openai_types import (
+    BackendCapabilities,
     ChatCompletionChoice,
     ChatCompletionRequest,
     ChatCompletionResponse,
+    ChatMessage,
     HealthResponse,
     ModelCard,
     ModelsListResponse,
@@ -40,12 +47,13 @@ logger = logging.getLogger(__name__)
 def create_app(config: CZConfig | None = None) -> FastAPI:
     config = config or load_config()
     sessions = SessionStore()
-    backend = _build_backend(config, sessions)
+    backend = build_backend(config, sessions)
 
     app = FastAPI(title="Construct-Zero Adapter", version=__version__)
     app.state.config = config
     app.state.backend = backend
     app.state.sessions = sessions
+    app.state.route_backends: dict[str, InferenceBackend] = {}
     app.state.cz_ledger_path = None  # tests may override
     app.state.cz_budgets_path = None
     cz_ledger.init_db(app.state.cz_ledger_path)
@@ -57,6 +65,8 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
         code = "cz_error"
         if exc.status_code == 401:
             code = "cz_auth_missing" if "Missing" in detail else "cz_auth_invalid"
+        elif exc.status_code == 501 and "Tools are not supported" in detail:
+            code = "cz_unsupported_tools"
         return JSONResponse(
             status_code=exc.status_code,
             content={
@@ -90,17 +100,38 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
         b = request.app.state.backend
         cfg: CZConfig = request.app.state.config
         status = b.health()
+        caps = capabilities_for(b)
         return HealthResponse(
             status="ok" if status.ok else "error",
             version=__version__,
             backend=b.name,
             cursor_key_present=bool(cfg.cursor_api_key()),
             detail=status.detail,
+            capabilities=BackendCapabilities(
+                tools=caps.tools,
+                streaming=caps.streaming,
+                vision=caps.vision,
+                usage=caps.usage,
+                max_context=caps.max_context,
+            ),
+            backends_available=list_backend_names(),
         )
 
     @app.get("/v1/models", response_model=ModelsListResponse, dependencies=[Depends(require_auth)])
     def list_models(request: Request) -> ModelsListResponse:
-        ids = request.app.state.backend.list_models()
+        cfg: CZConfig = request.app.state.config
+        b = request.app.state.backend
+        ids = list(b.list_models())
+        if routing_enabled(cfg):
+            for name in list_backend_names():
+                if name == b.name:
+                    continue
+                try:
+                    rb = _get_routed_backend(request.app, cfg, name)
+                    for mid in rb.list_models():
+                        ids.append(f"{name}:{mid}")
+                except Exception:
+                    continue
         now = int(time.time())
         return ModelsListResponse(data=[ModelCard(id=mid, created=now) for mid in ids])
 
@@ -110,12 +141,18 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
         request: Request,
         authorization: str | None = Header(default=None),
     ):
-        b = request.app.state.backend
-        if body.tools and b.name == "claude_code":
+        cfg: CZConfig = request.app.state.config
+        b, body = _backend_for_request(request.app, cfg, body)
+        caps = capabilities_for(b)
+        if body.tools and not caps.tools:
             raise HTTPException(
                 status_code=501,
-                detail="Tools not supported on claude_code stub",
+                detail=(
+                    f"Tools are not supported on backend {b.name!r}. "
+                    "Use a backend with tool support (e.g. cursor or openai_compat)."
+                ),
             )
+        image_warning = _messages_contain_images(body.messages)
 
         killed = cz_guard.check_killed()
         if killed:
@@ -141,7 +178,7 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
         req_id = f"chatcmpl-{uuid.uuid4().hex[:24]}"
         try:
             if body.stream:
-                return StreamingResponse(
+                stream = StreamingResponse(
                     _stream_response(
                         b,
                         body,
@@ -153,6 +190,9 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
                     ),
                     media_type="text/event-stream",
                 )
+                if image_warning:
+                    stream.headers["X-CZ-Warning"] = "images-dropped"
+                return stream
             result = b.complete(body)
             completion_est = cz_identity.estimate_tokens(result.text or "")
             cz_guard.record_adapter_usage(
@@ -165,7 +205,13 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
                 status=200,
                 db_path=db_path,
             )
-            return _to_openai_response(result, body.model)
+            resp = _to_openai_response(result, body.model)
+            if image_warning:
+                return JSONResponse(
+                    content=resp.model_dump(),
+                    headers={"X-CZ-Warning": "images-dropped"},
+                )
+            return resp
         except HTTPException:
             raise
         except Exception as exc:
@@ -207,15 +253,36 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
     return app
 
 
-def _build_backend(config: CZConfig, sessions: SessionStore):
-    backend_name = (config.inference.backend or "cursor").strip().lower()
-    if backend_name in {"cursor", "hcx", "construct-zero", "cz"}:
-        return CursorDriver(config, sessions=sessions)
-    if backend_name == "mock":
-        return MockDriver(sessions=sessions)
-    if backend_name in {"claude_code", "claude-code"}:
-        return ClaudeCodeDriver()
-    raise ValueError(f"Unknown inference.backend: {backend_name}")
+def _get_routed_backend(app: FastAPI, cfg: CZConfig, backend_name: str) -> InferenceBackend:
+    cache: dict[str, InferenceBackend] = app.state.route_backends
+    canonical = resolve_backend_name(backend_name)
+    if canonical not in cache:
+        cache[canonical] = build_backend(cfg, app.state.sessions, name=canonical)
+    return cache[canonical]
+
+
+def _backend_for_request(
+    app: FastAPI, cfg: CZConfig, body: ChatCompletionRequest
+) -> tuple[InferenceBackend, ChatCompletionRequest]:
+    if routing_enabled(cfg):
+        routed_backend, routed_model = parse_routed_model(body.model)
+        if routed_backend:
+            b = _get_routed_backend(app, cfg, routed_backend)
+            if routed_model:
+                body = body.model_copy(update={"model": routed_model})
+            return b, body
+    return app.state.backend, body
+
+
+def _messages_contain_images(messages: list[ChatMessage]) -> bool:
+    for msg in messages:
+        content = msg.content
+        if not isinstance(content, list):
+            continue
+        for part in content:
+            if isinstance(part, dict) and part.get("type") == "image_url":
+                return True
+    return False
 
 
 def _to_openai_response(
