@@ -69,6 +69,12 @@ class MockDriver:
                 finish_reason="stop",
                 model=request.model or "mock-model",
             )
+        if "one word: pong" in text.lower() or "reply pong" in text.lower():
+            return CompletionResult(
+                text="PONG",
+                finish_reason="stop",
+                model=request.model or "mock-model",
+            )
         return CompletionResult(
             text=f"mock:{text}",
             finish_reason="stop",

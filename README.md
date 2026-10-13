@@ -170,6 +170,15 @@ cd ../voice && source ../.venvs/voice/bin/activate && pytest -q
 3. Hermes updatable via `./scripts/update-hermes.sh` without rewriting Construct-Zero
 4. Owned surface: OpenAI façade + Cursor SDK driver + Hermes plugin + `./construct-zero doctor`
 
+## Use with other agents
+
+CZ is an OpenAI-compatible endpoint on your machine. Hermes is the primary, fully tested path.
+
+- **Cline** (VS Code): see [docs/recipes/cline.md](docs/recipes/cline.md) — check with `./construct-zero doctor --client=cline`.
+- Other clients (Aider, OpenHands, …): not yet supported — ask in [Discussions](https://github.com/AnishSukhramani/construct-zero/discussions).
+
+Limits vs Hermes: streaming may be buffered on some backends, images are dropped, token usage may be missing or estimated.
+
 ## Out of scope (for now)
 
 - Depending on `cursor-api-proxy` as runtime

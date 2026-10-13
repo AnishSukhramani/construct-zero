@@ -8,6 +8,96 @@ export CZ_ROOT="$ROOT"
 source "$ROOT/scripts/lib/common.sh"
 cz_load_env
 
+DOCTOR_CLIENT=""
+DOCTOR_MODEL="${CZ_DOCTOR_MODEL:-auto}"
+DOCTOR_CERTIFY=0
+DOCTOR_CERTIFY_JSON=0
+DOCTOR_CERTIFY_OFFLINE=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --client=*)
+      DOCTOR_CLIENT="${1#*=}"
+      shift
+      ;;
+    --client)
+      DOCTOR_CLIENT="${2:-}"
+      shift 2
+      ;;
+    --model=*)
+      DOCTOR_MODEL="${1#*=}"
+      shift
+      ;;
+    --model)
+      DOCTOR_MODEL="${2:-auto}"
+      shift 2
+      ;;
+    --certify)
+      DOCTOR_CERTIFY=1
+      shift
+      ;;
+    --json)
+      DOCTOR_CERTIFY_JSON=1
+      shift
+      ;;
+    --offline)
+      DOCTOR_CERTIFY_OFFLINE=1
+      shift
+      ;;
+    -h | --help)
+      cat <<'EOF'
+Usage: ./construct-zero doctor [--client=cline] [--model=ID]
+       ./construct-zero doctor --certify [--json] [--offline]
+
+  (default)     Adapter health, models, optional chat, Hermes pin/config
+  --client      Extra checks for a third-party client (cline supported)
+  --certify     CZ Certified profile (cz-certified-v1)
+EOF
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+if [[ "$DOCTOR_CERTIFY" == "1" ]]; then
+  py="$ROOT/adapter/.venv/bin/python"
+  if [[ -x "$py" ]]; then
+    args=(--certify)
+    [[ "$DOCTOR_CERTIFY_JSON" == "1" ]] && args+=(--json)
+    [[ "$DOCTOR_CERTIFY_OFFLINE" == "1" ]] && args+=(--offline)
+    exec "$py" -m construct_zero.doctor.cli "${args[@]}"
+  fi
+  if [[ -f "$ROOT/scripts/lib/doctor_legacy.sh" ]]; then
+    # shellcheck source=lib/doctor_legacy.sh
+    source "$ROOT/scripts/lib/doctor_legacy.sh"
+    exit 2
+  fi
+  echo "FAIL: certify requires adapter venv (run ./scripts/setup.sh)" >&2
+  exit 2
+fi
+
+DOCTOR_CLIENT_LC="$(printf '%s' "$DOCTOR_CLIENT" | tr '[:upper:]' '[:lower:]')"
+case "$DOCTOR_CLIENT_LC" in
+  aider | openhands)
+    cat <<EOF
+Not yet supported. Ask for it in GitHub Discussions → Ideas (https://github.com/AnishSukhramani/construct-zero/discussions/categories/ideas).
+The adapter is OpenAI-compatible, so it may already work; see docs/recipes/README.md.
+EOF
+    exit 0
+    ;;
+  "")
+    ;;
+  cline)
+    ;;
+  *)
+    echo "Unknown --client: $DOCTOR_CLIENT (supported: cline)" >&2
+    exit 2
+    ;;
+esac
+
 HOST="${CZ_HOST:-${HCX_HOST:-127.0.0.1}}"
 PORT="${CZ_PORT:-${HCX_PORT:-8765}}"
 BASE="http://${HOST}:${PORT}"
@@ -21,7 +111,7 @@ failures=0
 _doctor_backend() {
   local b="${CZ_BACKEND:-${HCX_BACKEND:-}}"
   if [[ -n "$b" ]]; then
-    printf '%s\n' "$b" | tr '[:upper:]' '[:lower]'
+    printf '%s\n' "$b" | tr '[:upper:]' '[:lower:]'
     return 0
   fi
   if [[ -x "$ROOT/adapter/.venv/bin/python" ]]; then
@@ -42,6 +132,11 @@ fi
 
 _doctor_fail() {
   echo "FAIL: $*" >&2
+  failures=$((failures + 1))
+}
+
+_doctor_cline_fail() {
+  echo "FAIL $*" >&2
   failures=$((failures + 1))
 }
 
@@ -171,6 +266,84 @@ else
   if [[ "$failures" -eq 0 ]] || grep -qE 'provider:[[:space:]]*construct-zero' "$HERMES_CONFIG" 2>/dev/null; then
     echo "    provider construct-zero, base_url matches adapter port"
   fi
+fi
+
+if [[ "$DOCTOR_CLIENT_LC" == "cline" ]]; then
+  CLINE_BASE="${BASE}/v1"
+  echo "==> Cline client checks"
+  echo "    C1 base URL: $CLINE_BASE"
+  if [[ -z "$health" || "$status" != "ok" ]]; then
+    _doctor_cline_fail "C2: adapter health not ok — run ./construct-zero start"
+  else
+    models_json=""
+    if [[ -n "$auth_hdr" ]]; then
+      models_json="$(curl -fsS -H "$auth_hdr" "$BASE/v1/models" 2>/dev/null || true)"
+    else
+      models_json="$(curl -fsS "$BASE/v1/models" 2>/dev/null || true)"
+    fi
+    if ! echo "$models_json" | python3 -c "import sys,json; d=json.load(sys.stdin); ids=[x.get('id') for x in d.get('data',[])]; m=sys.argv[1]; sys.exit(0 if m in ids else 1)" "$DOCTOR_MODEL" 2>/dev/null; then
+      _doctor_cline_fail "C2: model '$DOCTOR_MODEL' not in /v1/models. Fix: use auto or pick a listed model (--model=ID)."
+    else
+      echo "    C2 model '$DOCTOR_MODEL' present"
+    fi
+  fi
+
+  if [[ "${CZ_DOCTOR_CHAT:-${HCX_DOCTOR_CHAT:-1}}" == "0" ]]; then
+    echo "    C3/C4 skipped (CZ_DOCTOR_CHAT=0)"
+  elif [[ -n "$health" && "$status" == "ok" ]]; then
+    c3_body='{"model":"'"$DOCTOR_MODEL"'","messages":[{"role":"user","content":"Reply with exactly one word: PONG"}],"stream":false,"temperature":0.2}'
+    c3_out=""
+    if [[ -n "$auth_hdr" ]]; then
+      c3_out="$(curl -fsS -H "Content-Type: application/json" -H "$auth_hdr" "$BASE/v1/chat/completions" -d "$c3_body" 2>/dev/null || true)"
+    else
+      c3_out="$(curl -fsS -H "Content-Type: application/json" "$BASE/v1/chat/completions" -d "$c3_body" 2>/dev/null || true)"
+    fi
+    if ! echo "$c3_out" | python3 -c "import sys,json; j=json.load(sys.stdin); t=(j.get('choices') or [{}])[0].get('message',{}).get('content') or ''; sys.exit(0 if 'PONG' in t.upper() else 1)" 2>/dev/null; then
+      _doctor_cline_fail "C3: chat request failed or missing PONG. Fix: run ./construct-zero doctor (no flags) and fix the first failure; check CURSOR_API_KEY in .env."
+    else
+      echo "    C3 Cline-shaped text request OK (PONG)"
+    fi
+
+    c4_body='{"model":"'"$DOCTOR_MODEL"'","messages":[{"role":"user","content":"Use read_file if needed."}],"tools":[{"type":"function","function":{"name":"read_file","description":"Read a file","parameters":{"type":"object","properties":{"path":{"type":"string"}}}}}],"stream":false}'
+    c4_code="000"
+    if [[ -n "$auth_hdr" ]]; then
+      c4_code="$(curl -sS -o /tmp/cz-doctor-c4.json -w '%{http_code}' -H "Content-Type: application/json" -H "$auth_hdr" "$BASE/v1/chat/completions" -d "$c4_body" 2>/dev/null || echo 000)"
+    else
+      c4_code="$(curl -sS -o /tmp/cz-doctor-c4.json -w '%{http_code}' -H "Content-Type: application/json" "$BASE/v1/chat/completions" -d "$c4_body" 2>/dev/null || echo 000)"
+    fi
+    if [[ "$c4_code" =~ ^5 ]]; then
+      _doctor_cline_fail "C4: tool request returned HTTP $c4_code. Fix: run ./construct-zero doctor (no flags) and fix adapter errors."
+    else
+      echo "    C4 Cline-shaped tool request OK (HTTP $c4_code)"
+    fi
+  fi
+
+  adapter_key=""
+  if [[ -x "$ROOT/adapter/.venv/bin/python" ]]; then
+    adapter_key="$("$ROOT/adapter/.venv/bin/python" - <<'PY' 2>/dev/null || true
+from construct_zero.config import load_config
+print((load_config().adapter.api_key or "").strip())
+PY
+)"
+  fi
+  if [[ -n "$adapter_key" && "$adapter_key" != "unused" ]]; then
+    echo "    C5 auth: set Cline API Key to the same value as adapter.api_key (never CURSOR_API_KEY)"
+  else
+    echo "    C5 auth: Cline API Key can be any placeholder (e.g. unused); do not paste CURSOR_API_KEY"
+  fi
+
+  echo
+  echo "Paste into Cline (OpenAI Compatible):"
+  echo "  Base URL:       $CLINE_BASE"
+  if [[ -n "$adapter_key" && "$adapter_key" != "unused" ]]; then
+    echo "  API Key:        (same as adapter.api_key in config)"
+  else
+    echo "  API Key:        unused  (or any placeholder)"
+  fi
+  echo "  Model ID:       $DOCTOR_MODEL"
+  echo "  Context Window: 200000"
+  echo "  Images / prompt caching: off"
+  echo "  Recipe: docs/recipes/cline.md"
 fi
 
 echo
