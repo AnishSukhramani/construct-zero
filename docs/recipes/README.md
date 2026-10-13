@@ -11,4 +11,4 @@ OpenAI-compatible clients that talk to Construct-Zero on loopback (`http://127.0
 
 Company / VPC models: [backend-openai-compat.md](backend-openai-compat.md) (when `inference.backend: openai_compat`).
 
-Windows: [wsl.md](wsl.md).
+Windows (WSL2): [wsl.md](wsl.md).

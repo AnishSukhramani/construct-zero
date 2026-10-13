@@ -70,6 +70,7 @@ You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 ## Requirements
 
 - Git, curl, Python 3.10+ (3.12 recommended)
+- macOS, Linux; **Windows via WSL2** (community-tested — [docs/recipes/wsl.md](docs/recipes/wsl.md))
 - [uv](https://docs.astral.sh/uv/) is offered during install (recommended; no Homebrew required)
 - **`CURSOR_API_KEY`** (required) — create in [Cursor dashboard](https://cursor.com/dashboard) → API Keys; stored locally in `.env` (gitignored). Usage counts against your Cursor subscription/plan.
 - Voice: `ffmpeg` (and often `espeak-ng` for Kokoro)
