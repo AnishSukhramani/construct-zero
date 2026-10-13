@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["detail", "error"],
+  "properties": {
+    "detail": { "type": "string" },
+    "error": {
+      "type": "object",
+      "required": ["message", "type", "code"],
+      "properties": {
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "code": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

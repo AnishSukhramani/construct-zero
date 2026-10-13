@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["status", "version", "backend", "cursor_key_present"],
+  "properties": {
+    "status": { "enum": ["ok", "degraded", "error"] },
+    "version": { "type": "string", "minLength": 1 },
+    "backend": { "type": "string", "minLength": 1 },
+    "cursor_key_present": { "type": "boolean" },
+    "detail": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

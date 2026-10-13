@@ -5,12 +5,11 @@ from __future__ import annotations
 import base64
 from pathlib import Path
 
-from fastapi.testclient import TestClient
-from construct_zero_vpl.config import VplConfig
-from construct_zero_vpl.engine import PresentationEngine
-
 from construct_zero_voice.server import app, reset_backends, set_backends
 from construct_zero_voice.session_store import SessionStore
+from construct_zero_vpl.config import VplConfig
+from construct_zero_vpl.engine import PresentationEngine
+from fastapi.testclient import TestClient
 
 FIXTURE = Path(__file__).resolve().parents[2] / "vpl" / "tests" / "fixtures" / "long_backlog.md"
 
@@ -146,7 +145,12 @@ def test_nav_turn_skips_hermes(monkeypatch):
 
     # Seed session via first turn
     stt_first = FakeSTT("Give me the backlog")
-    set_backends(stt=stt_first, tts=tts, vpl_engine=PresentationEngine(VplConfig(enabled=True)), session_store=store)
+    set_backends(
+        stt=stt_first,
+        tts=tts,
+        vpl_engine=PresentationEngine(VplConfig(enabled=True)),
+        session_store=store,
+    )
     r1 = client.post("/turn", files={"audio": ("u.webm", b"a", "audio/webm")})
     assert r1.status_code == 200
     session_id = r1.json()["session_id"]
@@ -154,7 +158,12 @@ def test_nav_turn_skips_hermes(monkeypatch):
     assert hermes_calls == 1
 
     # Navigation turn — must not call Hermes again
-    set_backends(stt=FakeSTT("second"), tts=tts, vpl_engine=PresentationEngine(VplConfig(enabled=True)), session_store=store)
+    set_backends(
+        stt=FakeSTT("second"),
+        tts=tts,
+        vpl_engine=PresentationEngine(VplConfig(enabled=True)),
+        session_store=store,
+    )
     r2 = client.post(
         "/turn",
         files={"audio": ("u.webm", b"b", "audio/webm")},

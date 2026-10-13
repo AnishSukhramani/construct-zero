@@ -27,7 +27,9 @@ class PresentationEngine:
     def prepare(self, full_text: str) -> SpeechDocument:
         return parse_document(full_text, self.config)
 
-    def begin(self, full_text: str, session_id: str | None = None) -> tuple[SessionState | None, TurnResult]:
+    def begin(
+        self, full_text: str, session_id: str | None = None
+    ) -> tuple[SessionState | None, TurnResult]:
         doc = self.prepare(full_text)
         if not self.config.enabled or not doc.layered:
             speak = render_for_speech(full_text)

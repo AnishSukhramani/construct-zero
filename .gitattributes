@@ -1,0 +1,10 @@
+# Exclude CI/test tooling from git archive (GitHub source tarballs).
+.github/ export-ignore
+tests/ export-ignore
+adapter/tests/ export-ignore
+vpl/tests/ export-ignore
+voice/tests/ export-ignore
+scripts/ci/ export-ignore
+Makefile export-ignore
+.pre-commit-config.yaml export-ignore
+docs/references/ci.md export-ignore

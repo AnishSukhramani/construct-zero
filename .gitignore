@@ -7,6 +7,9 @@ venv/
 adapter/.venv/
 *.egg-info/
 .pytest_cache/
+.coverage
+.coverage-report.json
+htmlcov/
 .mypy_cache/
 dist/
 build/

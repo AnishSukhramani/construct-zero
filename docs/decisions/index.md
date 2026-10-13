@@ -8,5 +8,6 @@ Lightweight **why** documents so agents do not relitigate settled choices.
 | [002](002-hermes-not-vendored.md) | Hermes upstream gitignored in `hermes/` | Accepted |
 | [003](003-vpl-zero-extra-llm.md) | VPL extractive; zero extra LLM calls | Accepted |
 | [004](004-construct-zero-rename.md) | Rebrand to Construct-Zero; shim old HCX names | Accepted |
+| [005](005-agent-home.md) | Shared context home; no second agent loop in CZ | Accepted |
 
 When reversing an ADR, add a new ADR that supersedes the old one — do not silently delete history.

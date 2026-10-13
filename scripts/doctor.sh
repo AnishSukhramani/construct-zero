@@ -18,6 +18,28 @@ HERMES_CONFIG="$HERMES_HOME/config.yaml"
 
 failures=0
 
+_doctor_backend() {
+  local b="${CZ_BACKEND:-${HCX_BACKEND:-}}"
+  if [[ -n "$b" ]]; then
+    printf '%s\n' "$b" | tr '[:upper:]' '[:lower]'
+    return 0
+  fi
+  if [[ -x "$ROOT/adapter/.venv/bin/python" ]]; then
+    "$ROOT/adapter/.venv/bin/python" - <<'PY' 2>/dev/null || echo "cursor"
+from construct_zero.config import load_config
+print((load_config().inference.backend or "cursor").strip().lower())
+PY
+    return 0
+  fi
+  echo "cursor"
+}
+
+INFERENCE_BACKEND="$(_doctor_backend)"
+MOCK_BACKEND=0
+if [[ "$INFERENCE_BACKEND" == "mock" ]]; then
+  MOCK_BACKEND=1
+fi
+
 _doctor_fail() {
   echo "FAIL: $*" >&2
   failures=$((failures + 1))
@@ -30,12 +52,17 @@ _doctor_auth_header() {
   fi
 }
 
-echo "==> CURSOR_API_KEY"
-if [[ -z "${CURSOR_API_KEY:-}" ]]; then
-  _doctor_fail "CURSOR_API_KEY is not set. Add it to $ROOT/.env or export it."
-  echo "    Create a key: https://cursor.com/dashboard → API Keys" >&2
+echo "==> inference.backend ($INFERENCE_BACKEND)"
+if [[ "$MOCK_BACKEND" == "1" ]]; then
+  echo "    mock backend — CURSOR_API_KEY checks skipped"
 else
-  echo "    present (value hidden)"
+  echo "==> CURSOR_API_KEY"
+  if [[ -z "${CURSOR_API_KEY:-}" ]]; then
+    _doctor_fail "CURSOR_API_KEY is not set. Add it to $ROOT/.env or export it."
+    echo "    Create a key: https://cursor.com/dashboard → API Keys" >&2
+  else
+    echo "    present (value hidden)"
+  fi
 fi
 
 echo "==> GET $BASE/health"
@@ -55,7 +82,7 @@ if [[ -n "$health" ]]; then
   if [[ "$status" != "ok" ]]; then
     _doctor_fail "health status is not ok${detail:+ — $detail}"
   fi
-  if [[ "$key_present" == "False" ]]; then
+  if [[ "$MOCK_BACKEND" != "1" && "$key_present" == "False" ]]; then
     _doctor_fail "adapter reports cursor_key_present=false — set CURSOR_API_KEY in .env and restart ./construct-zero start"
   fi
 fi
@@ -77,7 +104,9 @@ else
 fi
 
 if [[ "${CZ_DOCTOR_CHAT:-${HCX_DOCTOR_CHAT:-1}}" == "1" ]]; then
-  if [[ -z "${CURSOR_API_KEY:-}" ]]; then
+  if [[ "$MOCK_BACKEND" == "1" ]]; then
+    echo "==> POST chat.completions — mock backend (no CURSOR_API_KEY required)"
+  elif [[ -z "${CURSOR_API_KEY:-}" ]]; then
     echo "==> POST chat.completions — skipped (no CURSOR_API_KEY)"
   elif [[ -n "$health" && "$status" == "ok" ]]; then
     echo "==> POST chat.completions (non-stream)"
@@ -104,7 +133,9 @@ if [[ "${CZ_DOCTOR_CHAT:-${HCX_DOCTOR_CHAT:-1}}" == "1" ]]; then
 fi
 
 echo "==> Hermes upstream clone"
-if [[ -d "$HERMES_DIR/.git" ]] || [[ -f "$HERMES_DIR/.git" ]]; then
+if [[ "${CZ_DOCTOR_SKIP_HERMES:-0}" == "1" ]]; then
+  echo "    skipped (CZ_DOCTOR_SKIP_HERMES=1)"
+elif [[ -d "$HERMES_DIR/.git" ]] || [[ -f "$HERMES_DIR/.git" ]]; then
   if [[ -f "$LOCK" ]]; then
     HERMES_REF="$(grep -E '^\s*ref:' "$LOCK" | head -1 | sed -E 's/^[[:space:]]*ref:[[:space:]]*//' | tr -d "\"'")"
     if [[ -n "$HERMES_REF" ]]; then
@@ -125,7 +156,9 @@ else
 fi
 
 echo "==> Hermes config ($HERMES_CONFIG)"
-if [[ ! -f "$HERMES_CONFIG" ]]; then
+if [[ "${CZ_DOCTOR_SKIP_HERMES:-0}" == "1" ]]; then
+  echo "    skipped (CZ_DOCTOR_SKIP_HERMES=1)"
+elif [[ ! -f "$HERMES_CONFIG" ]]; then
   _doctor_fail "Hermes config missing at $HERMES_CONFIG — run ./construct-zero init or merge config/hermes.config.snippet.yaml"
 else
   if ! grep -qE 'provider:[[:space:]]*construct-zero' "$HERMES_CONFIG" 2>/dev/null; then

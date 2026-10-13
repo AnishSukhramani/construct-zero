@@ -16,6 +16,10 @@ Daily entrypoint is repo-root [`construct-zero`](../../construct-zero) (`./const
 | `start-voice.sh` | Voice sidecar (port from `CZ_VOICE_PORT`, default `:8767`) | After adapter up; optional |
 | `setup-voice.sh` | Voice venv + deps | Once before first voice use |
 | `doctor.sh` | Fails on missing `CURSOR_API_KEY`, bad `:8765` health, models/chat smoke, Hermes pin drift, or Hermes config mismatch | After config changes; debugging (`./construct-zero doctor`) |
+| `run-tests.sh` | Public test runner (`--fast`, full, `--smoke`); never starts/stops services | Before commit; same suite as CI tests job |
+| `ci/verify-staged.sh` | Blocks forbidden staged paths and obvious secrets | Before commit (see [PRE-COMMIT-CHECKLIST.md](../../PRE-COMMIT-CHECKLIST.md)) |
+| `ci/pre-commit.sh` | verify-staged + `run-tests.sh --fast` | Used by opt-in git hook |
+| `ci/install-git-hooks.sh` | Writes `.git/hooks/pre-commit` | Once per clone, optional |
 | `lib/help.sh` / `lib/help_ui.py` | Help home screen (pyfiglet + Rich) | Sourced/launched by the dispatcher; not run directly |
 
 ## init.sh flags

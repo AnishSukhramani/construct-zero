@@ -1,0 +1,50 @@
+title: Help / Setup
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reaching out. Fill in what you can so we can help you get unblocked.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (untested)
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Install method
+      options:
+        - "curl | bash (install.sh)"
+        - git clone + ./construct-zero init
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: doctor_output
+    attributes:
+      label: Doctor output
+      description: Paste `./construct-zero doctor` output. Remove your API key and any other secrets before posting.
+      placeholder: Paste here (redact CURSOR_API_KEY and similar)
+    validations:
+      required: true
+  - type: input
+    id: hermes_version
+    attributes:
+      label: Hermes version
+      description: From `./construct-zero doctor` or your Hermes checkout if you know it.
+    validations:
+      required: false
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: What you tried, what you expected, and what actually happened.
+    validations:
+      required: true

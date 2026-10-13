@@ -102,8 +102,7 @@ def parse_hermes_reply(stdout: str) -> str:
     kept = [
         ln
         for ln in lines
-        if not any(ln.startswith(p) for p in skip_prefixes)
-        and "Hermes Agent" not in ln
+        if not any(ln.startswith(p) for p in skip_prefixes) and "Hermes Agent" not in ln
     ]
     return "\n".join(kept).strip() or cleaned.strip()
 
@@ -148,6 +147,7 @@ def ask_hermes(
             timeout=timeout,
             env=env,
             cwd=str(repo_root()),
+            check=False,
         )
     except FileNotFoundError as exc:
         raise RuntimeError(

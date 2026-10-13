@@ -13,11 +13,7 @@ logger = logging.getLogger(__name__)
 
 class WhisperSTT:
     def __init__(self, model_size: str | None = None) -> None:
-        self.model_size = (
-            model_size
-            or env_cz("VOICE_WHISPER_MODEL")
-            or "base"
-        ).strip()
+        self.model_size = (model_size or env_cz("VOICE_WHISPER_MODEL") or "base").strip()
         self._model = None
 
     @property
@@ -39,9 +35,7 @@ class WhisperSTT:
             self._model = WhisperModel(self.model_size, **kwargs)
         except Exception:
             logger.warning("Whisper device=%s failed; falling back to cpu int8", device)
-            self._model = WhisperModel(
-                self.model_size, device="cpu", compute_type="int8"
-            )
+            self._model = WhisperModel(self.model_size, device="cpu", compute_type="int8")
         logger.info("faster-whisper loaded model=%s", self.model_size)
 
     def transcribe_bytes(self, data: bytes, suffix: str = ".webm") -> str:

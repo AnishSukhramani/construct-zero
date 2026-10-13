@@ -16,18 +16,18 @@ def orient_and_map_text(doc: SpeechDocument) -> str:
 
     if n_items and n_buckets:
         parts.append(
-            f"I found {n_items} suggestions in {n_buckets} groups. "
-            "The full list is on your screen."
+            f"I found {n_items} suggestions in {n_buckets} groups. The full list is on your screen."
         )
     elif n_items:
-        parts.append(
-            f"I found {n_items} suggestions. The full list is on your screen."
-        )
+        parts.append(f"I found {n_items} suggestions. The full list is on your screen.")
 
     if doc.buckets:
         labels = [render_for_speech(b.label) for b in doc.buckets[:4]]
         if labels:
-            joined = ", ".join(labels[:-1]) + f", and {labels[-1]}" if len(labels) > 1 else labels[0]
+            if len(labels) > 1:
+                joined = ", ".join(labels[:-1]) + f", and {labels[-1]}"
+            else:
+                joined = labels[0]
             parts.append(f"The groups are: {joined}.")
         parts.append("Which group should we open? You can also say read all.")
 

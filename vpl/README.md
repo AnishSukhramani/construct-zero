@@ -21,9 +21,9 @@ full_text = open("long_reply.md").read()
 
 # New answer — may enter layered mode for long lists
 session, turn = engine.begin(full_text)
-print(turn.speak_text)   # short orient/map excerpt
-print(turn.reply_full)   # full text (unchanged)
-print(turn.buckets)      # [{id, label, count}, ...]
+print(turn.speak_text)  # short orient/map excerpt
+print(turn.reply_full)  # full text (unchanged)
+print(turn.buckets)  # [{id, label, count}, ...]
 
 # Navigation turn — no backend call
 if session:
@@ -38,6 +38,7 @@ VPL does not call Hermes. Wire any text-producing backend in your app:
 ```python
 def ask_brain(prompt: str) -> str:
     return my_http_client.post("/chat", json={"q": prompt}).text
+
 
 reply = ask_brain(user_text)
 session, turn = engine.begin(reply)

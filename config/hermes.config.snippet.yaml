@@ -3,3 +3,4 @@ model:
   provider: construct-zero
   default: auto
   base_url: http://127.0.0.1:8765/v1
+  context_length: 256000

@@ -1,0 +1,14 @@
+{
+  "model": "auto",
+  "messages": [{ "role": "user", "content": "ping" }],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "execute_bash",
+        "description": "Run a shell command",
+        "parameters": { "type": "object", "properties": { "command": { "type": "string" } } }
+      }
+    }
+  ]
+}

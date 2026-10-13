@@ -1,0 +1,6 @@
+{
+  "model": "auto",
+  "messages": [{ "role": "user", "content": "Summarize this repo in one sentence." }],
+  "stream": false,
+  "temperature": 0.2
+}

@@ -1,0 +1,15 @@
+version: 1
+agents:
+  claude-code:
+    patterns:
+      - "usage limit reached"
+      - "5-hour limit"
+      - "limit will reset"
+  cursor:
+    patterns:
+      - "You've hit your usage limit"
+      - "out of fast requests"
+  hermes:
+    patterns:
+      - "rate limit"
+      - "cz_budget_exceeded"
