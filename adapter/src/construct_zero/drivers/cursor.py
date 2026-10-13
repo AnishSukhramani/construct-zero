@@ -319,7 +319,9 @@ class CursorDriver:
         ct = max(1, len(completion) // 4)
         return {"prompt_tokens": pt, "completion_tokens": ct, "total_tokens": pt + ct}
 
-    def _stream_native_text(self, request: ChatCompletionRequest, model: str) -> Iterator[StreamChunk]:
+    def _stream_native_text(
+        self, request: ChatCompletionRequest, model: str
+    ) -> Iterator[StreamChunk]:
         from cursor_sdk import Agent
 
         api_key = self._api_key()

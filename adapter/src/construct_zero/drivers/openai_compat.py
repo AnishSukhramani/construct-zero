@@ -129,12 +129,17 @@ class OpenAICompatDriver:
             detail = resp.json().get("error", {}).get("message", resp.text)
         except Exception:
             detail = resp.text or resp.reason_phrase
-        raise UpstreamError(resp.status_code, host, f"upstream {host} HTTP {resp.status_code}: {detail}")
+        msg = f"upstream {host} HTTP {resp.status_code}: {detail}"
+        raise UpstreamError(resp.status_code, host, msg)
 
     def complete(self, request: ChatCompletionRequest) -> CompletionResult:
         url = self._chat_url(request.model)
         try:
-            resp = self._client.post(url, headers=self._request_headers(), json=self._payload(request))
+            resp = self._client.post(
+                url,
+                headers=self._request_headers(),
+                json=self._payload(request),
+            )
         except httpx.TimeoutException as exc:
             host = urlparse(url).hostname or "upstream"
             raise UpstreamError(504, host, f"upstream timeout contacting {host}") from exc

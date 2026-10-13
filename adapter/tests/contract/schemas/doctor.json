@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema", "profile", "certified", "generated_at", "cz", "env", "backend", "checks"],
+  "properties": {
+    "schema": { "const": "cz-doctor/1" },
+    "profile": { "type": "string" },
+    "certified": { "type": "boolean" },
+    "generated_at": { "type": "string" },
+    "cz": {
+      "type": "object",
+      "required": ["version"],
+      "properties": {
+        "version": { "type": "string" },
+        "commit": { "type": ["string", "null"] }
+      }
+    },
+    "env": { "type": "object" },
+    "hermes": { "type": "object" },
+    "backend": { "type": "object" },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "status", "detail", "fix"],
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "enum": ["required", "advisory"] },
+          "status": { "enum": ["pass", "fail", "skip", "warn"] },
+          "detail": { "type": "string" },
+          "fix": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

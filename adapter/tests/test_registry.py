@@ -92,6 +92,25 @@ def test_routing_on_prefixed_model(monkeypatch: pytest.MonkeyPatch) -> None:
     assert r.json()["choices"][0]["message"]["content"].startswith("mock:routed")
 
 
+def test_build_import_error_stub(monkeypatch: pytest.MonkeyPatch) -> None:
+    import construct_zero.core.registry as reg
+
+    reg._register_builtins()
+
+    def boom(cfg, sessions):
+        raise ImportError("no extra")
+
+    spec = reg._BACKENDS["cursor"]
+    monkeypatch.setitem(reg._BACKENDS, "cursor", reg.BackendSpec(
+        name="cursor",
+        factory=boom,
+        capabilities=spec.capabilities,
+    ))
+    b = reg.build(CZConfig(inference=InferenceConfig(backend="cursor")), SessionStore())
+    assert b.health().ok is False
+    assert "Install" in b.health().detail or "extra" in b.health().detail.lower()
+
+
 def test_image_warning_header() -> None:
     client = TestClient(create_app(CZConfig(inference=InferenceConfig(backend="mock"))))
     r = client.post(

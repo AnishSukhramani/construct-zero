@@ -199,6 +199,41 @@ def test_complete_populates_usage(monkeypatch):
     assert not (out.raw or {}).get("usage_estimated")
 
 
+def test_stream_without_iter_text_fallback(monkeypatch):
+    monkeypatch.setenv("CURSOR_API_KEY", "k")
+    cursor_sdk.Agent.stream_chunks = []
+    cursor_sdk.Agent.default_text = "fallback-text"
+
+    class RunNoIter:
+        def wait(self):
+            return cursor_sdk.RunOutcome(result="fallback-text")
+
+        def text(self):
+            return "fallback-text"
+
+    class Ctx:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return None
+
+        def send(self, prompt):
+            return RunNoIter()
+
+    cursor_sdk.Agent.create_factory = lambda p, o: RunNoIter()
+    monkeypatch.setattr(cursor_sdk.Agent, "create", lambda options: Ctx())
+    chunks = list(
+        _driver().stream(
+            ChatCompletionRequest(messages=[ChatMessage(role="user", content="x")])
+        )
+    )
+    assert any(
+        (c.data.get("choices") or [{}])[0].get("delta", {}).get("content") == "fallback-text"
+        for c in chunks
+    )
+
+
 def test_tool_timeout_from_config(monkeypatch):
     monkeypatch.setenv("CZ_TOOL_TIMEOUT_S", "42")
     cfg = load_config()

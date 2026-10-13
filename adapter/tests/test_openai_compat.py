@@ -129,6 +129,39 @@ def test_azure_url_shape(monkeypatch: pytest.MonkeyPatch) -> None:
     assert route.calls[0].request.headers["api-key"] == "azure-key"
 
 
+@respx.mock
+def test_complete_tool_calls(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CZ_OPENAI_COMPAT_API_KEY", "k")
+    respx.post("https://llm.example.com/v1/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "role": "assistant",
+                            "tool_calls": [
+                                {
+                                    "id": "c1",
+                                    "type": "function",
+                                    "function": {"name": "t", "arguments": "{}"},
+                                }
+                            ],
+                        },
+                        "finish_reason": "tool_calls",
+                    }
+                ]
+            },
+        )
+    )
+    from construct_zero.openai_types import ChatCompletionRequest, ChatMessage
+
+    out = OpenAICompatDriver(_cfg()).complete(
+        ChatCompletionRequest(messages=[ChatMessage(role="user", content="x")])
+    )
+    assert out.tool_calls
+
+
 def test_key_never_logged(caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CZ_OPENAI_COMPAT_API_KEY", "super-secret-key")
     with caplog.at_level(logging.ERROR):

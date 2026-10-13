@@ -16,11 +16,15 @@ from construct_zero.config import CZConfig, load_config
 from construct_zero.core.backend import CompletionResult, InferenceBackend
 from construct_zero.core.registry import (
     build as build_backend,
+)
+from construct_zero.core.registry import (
     capabilities_for,
     list_backend_names,
     parse_routed_model,
-    resolve as resolve_backend_name,
     routing_enabled,
+)
+from construct_zero.core.registry import (
+    resolve as resolve_backend_name,
 )
 from construct_zero.core.sessions import SessionStore
 from construct_zero.core.streaming import sse_line
@@ -54,7 +58,7 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
     app.state.config = config
     app.state.backend = backend
     app.state.sessions = sessions
-    app.state.route_backends: dict[str, InferenceBackend] = {}
+    app.state.route_backends = {}
     app.state.cz_ledger_path = None  # tests may override
     app.state.cz_budgets_path = None
     cz_ledger.init_db(app.state.cz_ledger_path)

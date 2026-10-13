@@ -8,6 +8,7 @@ Status key: **MVP** = shipped in repo | **Stub** = placeholder only | **Out of s
 | Construct-Zero adapter (OpenAI façade) | MVP | [adapter/](../../adapter/) | [adapter-inference.md](adapter-inference.md) |
 | Inference backend registry + capabilities | MVP | [adapter/src/construct_zero/core/registry.py](../../adapter/src/construct_zero/core/registry.py) | [adapter-inference.md](adapter-inference.md) |
 | BYO LLM (`openai_compat`) | MVP | [adapter/src/construct_zero/drivers/openai_compat.py](../../adapter/src/construct_zero/drivers/openai_compat.py) | [backend-openai-compat.md](../recipes/backend-openai-compat.md) |
+| CZ Certified (`doctor --certify`) | MVP | [adapter/src/construct_zero/doctor/](../../adapter/src/construct_zero/doctor/) | [certified.md](../certified.md) |
 | Cursor tool passthrough | MVP | [adapter/src/construct_zero/core/sessions.py](../../adapter/src/construct_zero/core/sessions.py) | [adapter-inference.md](adapter-inference.md) |
 | Hermes Construct-Zero provider plugin | MVP | [hermes-plugin/](../../hermes-plugin/) | [hermes-plugin.md](hermes-plugin.md) |
 | Voice hold-to-talk sidecar | MVP | [voice/](../../voice/) | [voice-sidecar.md](voice-sidecar.md) |

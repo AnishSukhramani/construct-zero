@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
 
 from construct_zero.config import CZConfig
 from construct_zero.core.backend import InferenceBackend

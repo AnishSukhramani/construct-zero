@@ -1,0 +1,27 @@
+# Source of truth for docs/certified.md (generated — do not edit by hand).
+profile: cz-certified-v1
+cells:
+  - os: Ubuntu 24.04
+    python: "3.12"
+    hermes_pin: upstream.lock.yaml
+    backend: mock
+    client: none
+    status: CI-certified
+  - os: Ubuntu 24.04
+    python: "3.12"
+    hermes_pin: upstream.lock.yaml
+    backend: cursor
+    client: cline
+    status: advisory
+  - os: macOS latest
+    python: "3.12"
+    hermes_pin: upstream.lock.yaml
+    backend: cursor
+    client: cline
+    status: advisory
+  - os: WSL2 Ubuntu
+    python: "3.12"
+    hermes_pin: upstream.lock.yaml
+    backend: cursor
+    client: cline
+    status: community-reported

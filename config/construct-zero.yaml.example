@@ -12,6 +12,7 @@ inference:
     # ask = inference only; Hermes owns tools. Never use agent.
     mode: ask
     workspace_isolation: true
+    tool_timeout_s: 300   # or env CZ_TOOL_TIMEOUT_S
   # Future: claude_code driver (stub only in MVP)
   claude_code:
     enabled: false

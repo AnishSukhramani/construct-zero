@@ -6,7 +6,20 @@
     "version": "0.1.0",
     "backend": "mock",
     "cursor_key_present": false,
-    "detail": "mock backend: for tests and first-run checks, no inference"
+    "detail": "mock backend: for tests and first-run checks, no inference",
+    "capabilities": {
+        "tools": true,
+        "streaming": "buffered",
+        "vision": false,
+        "usage": false,
+        "max_context": null
+    },
+    "backends_available": [
+        "claude_code",
+        "cursor",
+        "mock",
+        "openai_compat"
+    ]
 }
 ==> GET http://127.0.0.1:PORT/v1/models
 {

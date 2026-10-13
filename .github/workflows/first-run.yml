@@ -51,6 +51,33 @@ jobs:
           name: first-run-timing
           path: first-run-timing.txt
 
+  certify:
+    name: certify
+    runs-on: ubuntu-latest
+    needs: first-run
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install minimal OS deps
+        run: apt-get update && apt-get install -y git curl python3 ca-certificates
+      - name: Certify (offline, mock backend)
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -euo pipefail
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          cd adapter && uv sync --all-groups --extra dev
+          cd "$GITHUB_WORKSPACE"
+          export CZ_BACKEND=mock
+          export CZ_DOCTOR_SKIP_HERMES=1
+          ./construct-zero start &
+          sleep 3
+          ./construct-zero doctor --certify --json --offline | tee certify.json
+          python3 scripts/ci/gen-certified-matrix.py --check
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cz-certify-json
+          path: certify.json
+
   first-run-macos:
     name: first-run-macos
     runs-on: macos-latest

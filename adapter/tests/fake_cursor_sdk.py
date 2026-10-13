@@ -73,7 +73,6 @@ class _ToolContext:
 
 class AgentRun:
     stream_chunks: list[str] = []
-    usage: TokenUsage | None = None
 
     def __init__(self, options: AgentOptions | None = None) -> None:
         self._options = options
@@ -103,8 +102,7 @@ class AgentRun:
     def iter_text(self):
         chunks = list(Agent.stream_chunks or [])
         if chunks:
-            for piece in chunks:
-                yield piece
+            yield from chunks
             return
         if Agent.default_text:
             yield Agent.default_text

@@ -199,6 +199,10 @@ Prefer `CZ_*`, `~/.construct-zero/`, and `provider: construct-zero` in new setup
 
 ## For maintainers
 
+[![CI](https://github.com/AnishSukhramani/construct-zero/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AnishSukhramani/construct-zero/actions/workflows/ci.yml)
+
+CZ Certified matrix: [docs/certified.md](docs/certified.md).
+
 Run the full suite locally: `make ci` (see [docs/references/ci.md](docs/references/ci.md)).
 
 **Agents:** start at [`AGENTS.md`](AGENTS.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md). Deploy flow: [`PRE-COMMIT-CHECKLIST.md`](PRE-COMMIT-CHECKLIST.md).
