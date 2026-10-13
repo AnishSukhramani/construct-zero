@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import hmac
-import os
 import secrets
 from pathlib import Path
 
 from construct_zero.home.paths import cz_state_dir
+from construct_zero.security.permissions import ensure_secure_dir, ensure_secure_file
 
 
 def admin_key_path() -> Path:
@@ -20,12 +20,13 @@ def killed_flag_path() -> Path:
 
 def ensure_admin_key() -> str:
     path = admin_key_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
+    ensure_secure_dir(path.parent)
     if path.is_file():
+        ensure_secure_file(path)
         return path.read_text(encoding="utf-8").strip()
     key = secrets.token_urlsafe(32)
     path.write_text(key + "\n", encoding="utf-8")
-    os.chmod(path, 0o600)
+    ensure_secure_file(path)
     return key
 
 
@@ -44,8 +45,9 @@ def is_killed() -> bool:
 
 def set_killed(reason: str = "") -> None:
     p = killed_flag_path()
-    p.parent.mkdir(parents=True, exist_ok=True)
+    ensure_secure_dir(p.parent)
     p.write_text(reason or "killed\n", encoding="utf-8")
+    ensure_secure_file(p, create=True)
 
 
 def clear_killed() -> None:
