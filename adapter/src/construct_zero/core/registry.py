@@ -108,9 +108,9 @@ def _register_builtins() -> None:
             aliases=("hcx", "construct-zero", "cz"),
             capabilities=Capabilities(
                 tools=True,
-                streaming="buffered",
+                streaming="native",
                 vision=False,
-                usage=False,
+                usage=True,
                 max_context=256_000,
             ),
             factory=_lazy_cursor,

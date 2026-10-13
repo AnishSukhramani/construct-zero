@@ -119,12 +119,16 @@ class CursorDriver:
         config: CZConfig,
         sessions: SessionStore | None = None,
         *,
-        tool_wait_timeout: float = 300.0,
+        tool_wait_timeout: float | None = None,
     ) -> None:
         self.config = config
         self.cursor_cfg: CursorDriverConfig = config.inference.cursor
         self.sessions = sessions or SessionStore()
-        self._tool_wait_timeout = tool_wait_timeout
+        self._tool_wait_timeout = (
+            float(tool_wait_timeout)
+            if tool_wait_timeout is not None
+            else float(self.cursor_cfg.tool_timeout_s or 300.0)
+        )
         self._workspace = self._make_workspace()
         self._acp = check_acp(self.cursor_cfg.agent_bin)
         self._runs: dict[str, ActiveRun] = {}
@@ -198,6 +202,13 @@ class CursorDriver:
         return self._complete_text(request, model)
 
     def stream(self, request: ChatCompletionRequest) -> Iterator[StreamChunk]:
+        model = self._resolve_model(request.model)
+        if request.tools or self._extract_tool_results(request.messages):
+            yield from self._stream_buffered_complete(request)
+            return
+        yield from self._stream_native_text(request, model)
+
+    def _stream_buffered_complete(self, request: ChatCompletionRequest) -> Iterator[StreamChunk]:
         result = self.complete(request)
         cid = completion_id()
         created = int(time.time())
@@ -288,6 +299,108 @@ class CursorDriver:
             done=True,
         )
 
+    def _usage_from_run(self, run: Any) -> dict[str, int] | None:
+        usage = getattr(run, "usage", None)
+        if usage is None:
+            return None
+        prompt = int(getattr(usage, "input_tokens", 0) or 0)
+        completion = int(getattr(usage, "output_tokens", 0) or 0)
+        total = int(getattr(usage, "total_tokens", 0) or (prompt + completion))
+        if total == 0 and prompt == 0 and completion == 0:
+            return None
+        return {
+            "prompt_tokens": prompt,
+            "completion_tokens": completion,
+            "total_tokens": total,
+        }
+
+    def _estimate_usage(self, prompt: str, completion: str) -> dict[str, int]:
+        pt = max(1, len(prompt) // 4)
+        ct = max(1, len(completion) // 4)
+        return {"prompt_tokens": pt, "completion_tokens": ct, "total_tokens": pt + ct}
+
+    def _stream_native_text(self, request: ChatCompletionRequest, model: str) -> Iterator[StreamChunk]:
+        from cursor_sdk import Agent
+
+        api_key = self._api_key()
+        if not api_key:
+            raise RuntimeError(f"Missing {self.cursor_cfg.api_key_env}")
+
+        prompt = messages_to_prompt(request.messages)
+        cid = completion_id()
+        created = int(time.time())
+        yield StreamChunk(
+            data={
+                "id": cid,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {"role": "assistant", "content": ""},
+                        "finish_reason": None,
+                    }
+                ],
+            }
+        )
+        with Agent.create(self._agent_options(model=model, api_key=api_key)) as agent:
+            run = agent.send(prompt)
+            iter_text = getattr(run, "iter_text", None)
+            if callable(iter_text):
+                for piece in iter_text():
+                    if not piece:
+                        continue
+                    yield StreamChunk(
+                        data={
+                            "id": cid,
+                            "object": "chat.completion.chunk",
+                            "created": created,
+                            "model": model,
+                            "choices": [
+                                {
+                                    "index": 0,
+                                    "delta": {"content": piece},
+                                    "finish_reason": None,
+                                }
+                            ],
+                        }
+                    )
+            else:
+                result = run.wait()
+                text = (result.result if result else None) or ""
+                try:
+                    text = run.text() or text
+                except Exception:
+                    pass
+                if text:
+                    yield StreamChunk(
+                        data={
+                            "id": cid,
+                            "object": "chat.completion.chunk",
+                            "created": created,
+                            "model": model,
+                            "choices": [
+                                {
+                                    "index": 0,
+                                    "delta": {"content": text},
+                                    "finish_reason": None,
+                                }
+                            ],
+                        }
+                    )
+            run.wait()
+        yield StreamChunk(
+            data={
+                "id": cid,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+            },
+            done=True,
+        )
+
     def _extract_tool_results(self, messages: list[ChatMessage]) -> list[tuple[str, str]]:
         return [
             (m.tool_call_id, _message_text(m.content))
@@ -338,7 +451,14 @@ class CursorDriver:
                 err = getattr(result, "error", None)
                 msg = getattr(err, "message", None) or str(err) or "cursor run error"
                 raise RuntimeError(msg)
-            return CompletionResult(text=text, finish_reason="stop", model=model)
+            usage = self._usage_from_run(run)
+            raw: dict[str, Any] | None = None
+            if usage is None:
+                usage = self._estimate_usage(prompt, text)
+                raw = {"usage_estimated": True}
+            return CompletionResult(
+                text=text, finish_reason="stop", model=model, usage=usage, raw=raw
+            )
 
     def _wait_outcome(
         self, active: ActiveRun, timeout: float | None = None

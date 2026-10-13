@@ -53,6 +53,17 @@ class RunOutcome:
     status: str = "finished"
     result: str = ""
     error: RunError | None = None
+    usage: TokenUsage | None = None
+
+
+@dataclass
+class TokenUsage:
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cache_read_tokens: int = 0
+    cache_write_tokens: int = 0
+    total_tokens: int = 0
+    reasoning_tokens: int | None = None
 
 
 @dataclass
@@ -61,10 +72,14 @@ class _ToolContext:
 
 
 class AgentRun:
+    stream_chunks: list[str] = []
+    usage: TokenUsage | None = None
+
     def __init__(self, options: AgentOptions | None = None) -> None:
         self._options = options
         self._prompt = ""
         self._tools_invoked = False
+        self._usage = None
 
     def send(self, prompt: str) -> AgentRun:
         self._prompt = prompt
@@ -85,16 +100,31 @@ class AgentRun:
             execute({"arg": "v"}, _ToolContext(tool_call_id=f"call_{name}"))
         self._tools_invoked = True
 
+    def iter_text(self):
+        chunks = list(Agent.stream_chunks or [])
+        if chunks:
+            for piece in chunks:
+                yield piece
+            return
+        if Agent.default_text:
+            yield Agent.default_text
+
     def wait(self) -> RunOutcome:
         if Agent.invoke_tools_on_send:
             self._invoke_custom_tools()
         if Agent.wait_hook is not None:
             Agent.wait_hook(self._prompt, self._options)
+        usage = self._usage or Agent.run_usage
         return RunOutcome(
             status=Agent.default_status,
             result=Agent.default_text,
             error=Agent.default_error,
+            usage=usage,
         )
+
+    @property
+    def usage(self) -> TokenUsage | None:
+        return self._usage or Agent.run_usage
 
     def text(self) -> str:
         if Agent.text_raises:
@@ -140,6 +170,8 @@ class Agent:
     default_error: RunError | None = None
     invoke_tools_on_send: bool = True
     text_raises: BaseException | None = None
+    stream_chunks: list[str] = []
+    run_usage: TokenUsage | None = None
     create_lock = threading.Lock()
 
     @classmethod
@@ -155,5 +187,7 @@ class Agent:
         cls.default_error = None
         cls.invoke_tools_on_send = True
         cls.text_raises = None
+        cls.stream_chunks = []
+        cls.run_usage = None
         _ModelsAPI.list_fail = None
         _ModelsAPI.models = [Model("auto"), Model("composer-2.5")]
