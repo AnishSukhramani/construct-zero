@@ -7,7 +7,7 @@ import time
 
 import cursor_sdk
 import pytest
-from construct_zero.config import CursorDriverConfig, CZConfig, InferenceConfig
+from construct_zero.config import CursorDriverConfig, CZConfig, InferenceConfig, load_config
 from construct_zero.core.sessions import SessionStore
 from construct_zero.drivers.cursor import (
     ActiveRun,
@@ -147,7 +147,8 @@ def test_complete_missing_key():
 
 def test_stream_text_chunks(monkeypatch):
     monkeypatch.setenv("CURSOR_API_KEY", "k")
-    cursor_sdk.Agent.default_text = "a" * 100
+    cursor_sdk.Agent.stream_chunks = ["chunk-a", "chunk-b"]
+    cursor_sdk.Agent.default_text = "chunk-a" + "chunk-b"
     drv = _driver()
     chunks = list(
         drv.stream(
@@ -155,10 +156,89 @@ def test_stream_text_chunks(monkeypatch):
         )
     )
     assert chunks[-1].done is True
-    assert any(
+    pieces = [
         c.data.get("choices", [{}])[0].get("delta", {}).get("content")
         for c in chunks
+        if c.data.get("choices")
+    ]
+    assert "chunk-a" in pieces
+    assert "chunk-b" in pieces
+
+
+def test_stream_emits_before_wait_finishes(monkeypatch):
+    monkeypatch.setenv("CURSOR_API_KEY", "k")
+    cursor_sdk.Agent.stream_chunks = ["early"]
+    gate = threading.Event()
+
+    def slow_wait(prompt: str, options: cursor_sdk.AgentOptions | None) -> None:
+        gate.wait(timeout=2)
+
+    cursor_sdk.Agent.wait_hook = slow_wait
+    drv = _driver()
+    gen = drv.stream(
+        ChatCompletionRequest(messages=[ChatMessage(role="user", content="x")])
     )
+    first = next(gen)
+    assert first.data["choices"][0]["delta"].get("content") == ""
+    second = next(gen)
+    assert second.data["choices"][0]["delta"].get("content") == "early"
+    gate.set()
+    list(gen)
+
+
+def test_complete_populates_usage(monkeypatch):
+    monkeypatch.setenv("CURSOR_API_KEY", "k")
+    cursor_sdk.Agent.run_usage = cursor_sdk.TokenUsage(
+        input_tokens=10, output_tokens=5, total_tokens=15, cache_read_tokens=0, cache_write_tokens=0
+    )
+    cursor_sdk.Agent.default_text = "ok"
+    out = _driver().complete(
+        ChatCompletionRequest(messages=[ChatMessage(role="user", content="x")])
+    )
+    assert out.usage == {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}
+    assert not (out.raw or {}).get("usage_estimated")
+
+
+def test_stream_without_iter_text_fallback(monkeypatch):
+    monkeypatch.setenv("CURSOR_API_KEY", "k")
+    cursor_sdk.Agent.stream_chunks = []
+    cursor_sdk.Agent.default_text = "fallback-text"
+
+    class RunNoIter:
+        def wait(self):
+            return cursor_sdk.RunOutcome(result="fallback-text")
+
+        def text(self):
+            return "fallback-text"
+
+    class Ctx:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return None
+
+        def send(self, prompt):
+            return RunNoIter()
+
+    cursor_sdk.Agent.create_factory = lambda p, o: RunNoIter()
+    monkeypatch.setattr(cursor_sdk.Agent, "create", lambda options: Ctx())
+    chunks = list(
+        _driver().stream(
+            ChatCompletionRequest(messages=[ChatMessage(role="user", content="x")])
+        )
+    )
+    assert any(
+        (c.data.get("choices") or [{}])[0].get("delta", {}).get("content") == "fallback-text"
+        for c in chunks
+    )
+
+
+def test_tool_timeout_from_config(monkeypatch):
+    monkeypatch.setenv("CZ_TOOL_TIMEOUT_S", "42")
+    cfg = load_config()
+    drv = CursorDriver(cfg, SessionStore())
+    assert drv._tool_wait_timeout == 42.0
 
 
 def test_stream_tool_calls(monkeypatch):

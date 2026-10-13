@@ -1,0 +1,49 @@
+==> inference.backend (mock)
+    mock backend — CURSOR_API_KEY checks skipped
+==> GET http://127.0.0.1:PORT/health
+{
+    "status": "ok",
+    "version": "0.1.0",
+    "backend": "mock",
+    "cursor_key_present": false,
+    "detail": "mock backend: for tests and first-run checks, no inference",
+    "capabilities": {
+        "tools": true,
+        "streaming": "buffered",
+        "vision": false,
+        "usage": false,
+        "max_context": null
+    },
+    "backends_available": [
+        "claude_code",
+        "cursor",
+        "mock",
+        "openai_compat"
+    ]
+}
+==> GET http://127.0.0.1:PORT/v1/models
+{
+    "object": "list",
+    "data": [
+        {
+            "id": "mock-model",
+            "object": "model",
+            "created": 0,
+            "owned_by": "cursor"
+        },
+        {
+            "id": "auto",
+            "object": "model",
+            "created": 0,
+            "owned_by": "cursor"
+        }
+    ]
+}
+==> POST chat.completions — mock backend (no CURSOR_API_KEY required)
+==> Hermes upstream clone
+    skipped (CZ_DOCTOR_SKIP_HERMES=1)
+==> Hermes config ($HOME/.hermes/config.yaml)
+    skipped (CZ_DOCTOR_SKIP_HERMES=1)
+
+Doctor OK.
+Hermes smoke: ./construct-zero chat

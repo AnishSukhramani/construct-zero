@@ -110,6 +110,7 @@ case "$STEP" in
     run_license
     run_cov
     run_contract
+    python3 "$ROOT/scripts/ci/gen-certified-matrix.py" --check
     run_guardrails
     ;;
   test) run_tests ;;

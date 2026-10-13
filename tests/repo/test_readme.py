@@ -21,6 +21,7 @@ README_HEADINGS = [
     "## Updating",
     "## Tests",
     "## Success criteria (MVP)",
+    "## Use with other agents",
     "## Out of scope (for now)",
     "## Migration from HCX",
     "## For maintainers",
@@ -44,6 +45,12 @@ BADGE_PATTERNS = (
 
 def _readme_text(repo_root: Path) -> str:
     return (repo_root / "README.md").read_text(encoding="utf-8")
+
+
+def test_readme_links_wsl_recipe(repo_root: Path) -> None:
+    text = _readme_text(repo_root)
+    assert "docs/recipes/wsl.md" in text
+    assert (repo_root / "docs/recipes/wsl.md").is_file()
 
 
 def test_cta_appears_exactly_twice(repo_root: Path) -> None:
@@ -71,10 +78,16 @@ def test_readme_headings_unchanged(repo_root: Path) -> None:
     assert headings == README_HEADINGS
 
 
-def test_readme_has_no_ci_badges(repo_root: Path) -> None:
+def test_readme_has_single_ci_badge_in_maintainers(repo_root: Path) -> None:
     text = _readme_text(repo_root)
+    maintainers = text.split("## For maintainers", 1)[-1]
+    badge_hits = sum(1 for pattern in BADGE_PATTERNS if pattern.search(maintainers))
+    assert badge_hits == 1, f"expected exactly one CI badge in For maintainers, found {badge_hits}"
+    header = text.split("## For maintainers", 1)[0]
     for pattern in BADGE_PATTERNS:
-        assert not pattern.search(text), f"unexpected badge pattern {pattern.pattern}"
+        assert not pattern.search(header), (
+            f"badge must not appear outside maintainers: {pattern.pattern}"
+        )
 
 
 def test_demo_video_link_present(repo_root: Path) -> None:

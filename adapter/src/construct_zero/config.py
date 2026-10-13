@@ -36,6 +36,7 @@ class CursorDriverConfig(BaseModel):
     api_key_env: str = "CURSOR_API_KEY"
     mode: str = "ask"
     workspace_isolation: bool = True
+    tool_timeout_s: float = 300.0
     # When True, use ACP CLI path for tool-bearing requests if agent binary exists
     prefer_acp_for_tools: bool = True
     agent_bin: str = ""  # empty = auto-detect cursor-agent / agent
@@ -45,11 +46,30 @@ class ClaudeCodeDriverConfig(BaseModel):
     enabled: bool = False
 
 
+class OpenAICompatAzureConfig(BaseModel):
+    api_version: str = "2024-10-21"
+    deployments: dict[str, str] = Field(default_factory=dict)
+
+
+class OpenAICompatConfig(BaseModel):
+    preset: str = "generic"  # generic | azure | vllm | ollama | litellm
+    base_url: str = ""
+    api_key_env: str = "CZ_OPENAI_COMPAT_API_KEY"
+    models: list[str] = Field(default_factory=list)
+    timeout_s: float = 120.0
+    extra_headers: dict[str, str] = Field(default_factory=dict)
+    azure: OpenAICompatAzureConfig = Field(default_factory=OpenAICompatAzureConfig)
+    allow_insecure_http: bool = False
+    ca_bundle: str | None = None
+
+
 class InferenceConfig(BaseModel):
     backend: str = "cursor"
     model: str = "auto"
+    routing: bool = False
     cursor: CursorDriverConfig = Field(default_factory=CursorDriverConfig)
     claude_code: ClaudeCodeDriverConfig = Field(default_factory=ClaudeCodeDriverConfig)
+    openai_compat: OpenAICompatConfig = Field(default_factory=OpenAICompatConfig)
 
 
 class AdapterConfig(BaseModel):
@@ -115,5 +135,10 @@ def load_config(path: Path | None = None) -> CZConfig:
     backend = env_cz("BACKEND")
     if backend:
         data.setdefault("inference", {})["backend"] = backend
+    tool_timeout = env_cz("TOOL_TIMEOUT_S")
+    if tool_timeout:
+        data.setdefault("inference", {}).setdefault("cursor", {})["tool_timeout_s"] = float(
+            tool_timeout
+        )
 
     return CZConfig.model_validate(data or {})

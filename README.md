@@ -70,6 +70,7 @@ You / Gateway  →  Hermes  →  Construct-Zero :8765  →  Cursor cloud models
 ## Requirements
 
 - Git, curl, Python 3.10+ (3.12 recommended)
+- macOS, Linux; **Windows via WSL2** (community-tested — [docs/recipes/wsl.md](docs/recipes/wsl.md))
 - [uv](https://docs.astral.sh/uv/) is offered during install (recommended; no Homebrew required)
 - **`CURSOR_API_KEY`** (required) — create in [Cursor dashboard](https://cursor.com/dashboard) → API Keys; stored locally in `.env` (gitignored). Usage counts against your Cursor subscription/plan.
 - Voice: `ffmpeg` (and often `espeak-ng` for Kokoro)
@@ -170,6 +171,15 @@ cd ../voice && source ../.venvs/voice/bin/activate && pytest -q
 3. Hermes updatable via `./scripts/update-hermes.sh` without rewriting Construct-Zero
 4. Owned surface: OpenAI façade + Cursor SDK driver + Hermes plugin + `./construct-zero doctor`
 
+## Use with other agents
+
+CZ is an OpenAI-compatible endpoint on your machine. Hermes is the primary, fully tested path.
+
+- **Cline** (VS Code): see [docs/recipes/cline.md](docs/recipes/cline.md) — check with `./construct-zero doctor --client=cline`.
+- Other clients (Aider, OpenHands, …): not yet supported — ask in [Discussions](https://github.com/AnishSukhramani/construct-zero/discussions).
+
+Limits vs Hermes: streaming may be buffered on some backends, images are dropped, token usage may be missing or estimated.
+
 ## Out of scope (for now)
 
 - Depending on `cursor-api-proxy` as runtime
@@ -188,6 +198,10 @@ This project was previously named **HCX — Hermes on Cursor**. Old names still 
 Prefer `CZ_*`, `~/.construct-zero/`, and `provider: construct-zero` in new setups. After pulling, re-run `./scripts/setup.sh` and `./scripts/setup-voice.sh` so editable packages pick up the rename.
 
 ## For maintainers
+
+[![CI](https://github.com/AnishSukhramani/construct-zero/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AnishSukhramani/construct-zero/actions/workflows/ci.yml)
+
+CZ Certified matrix: [docs/certified.md](docs/certified.md).
 
 Run the full suite locally: `make ci` (see [docs/references/ci.md](docs/references/ci.md)).
 
