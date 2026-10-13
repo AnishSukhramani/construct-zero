@@ -25,6 +25,7 @@ README_HEADINGS = [
     "## Out of scope (for now)",
     "## Migration from HCX",
     "## For maintainers",
+    "## Security & liability",
     "## License",
 ]
 

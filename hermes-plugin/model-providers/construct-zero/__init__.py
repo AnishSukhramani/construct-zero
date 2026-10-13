@@ -15,7 +15,14 @@ construct_zero = ProviderProfile(
         "Start the adapter first: scripts/start-adapter.sh"
     ),
     signup_url="https://cursor.com/dashboard/api",
-    env_vars=("CZ_API_KEY", "CZ_BASE_URL", "HCX_API_KEY", "HCX_BASE_URL"),
+    env_vars=(
+        "CZ_API_KEY",
+        "CZ_BASE_URL",
+        "CZ_PROJECT_ROOT",
+        "HCX_API_KEY",
+        "HCX_BASE_URL",
+        "HCX_PROJECT_ROOT",
+    ),
     base_url="http://127.0.0.1:8765/v1",
     auth_type="api_key",
     api_mode="chat_completions",

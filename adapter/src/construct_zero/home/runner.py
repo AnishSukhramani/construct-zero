@@ -18,6 +18,7 @@ from construct_zero.home import registry as reg_mod
 from construct_zero.home.checkpoint import handoff_prompt, write_checkpoint
 from construct_zero.home.importers.base import import_checkpoint
 from construct_zero.home.quota import match_quota
+from construct_zero.security.project_root import resolve_user_project_root
 
 AGENT_ALIASES = {
     "claude": "claude-code",
@@ -81,7 +82,7 @@ def run_agent(
     use_pty: bool | None = None,
 ) -> RunResult:
     agent_id = normalize_agent(agent_id)
-    project = (project or Path.cwd()).resolve()
+    project = (project or resolve_user_project_root()).resolve()
     cmd = resolve_bin(agent_id) + args
     if use_pty is None:
         use_pty = os.environ.get("CZ_RUN_NO_PTY", "") != "1" and sys.stdin.isatty()
@@ -208,7 +209,7 @@ def handoff_to(
     launch: bool = True,
     from_agent: str = "manual",
 ) -> str:
-    project = (project or Path.cwd()).resolve()
+    project = (project or resolve_user_project_root()).resolve()
     agent_id = normalize_agent(agent_id)
     cp = import_checkpoint(project, from_agent, reason=reason)
     cp.from_agent = from_agent

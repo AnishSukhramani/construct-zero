@@ -78,4 +78,16 @@ CZ_CERTIFIED_V1: tuple[CheckSpec, ...] = (
         "Secrets hygiene",
         "Keep .env mode 600; never put CURSOR_API_KEY in config/*.yaml.",
     ),
+    CheckSpec(
+        "project-isolation",
+        "required",
+        "Project vs CZ install root",
+        "Set CZ_PROJECT_ROOT to your app repo; use nested construct-zero/ or gitignored .cz/.",
+    ),
+    CheckSpec(
+        "adapter-auth",
+        "advisory",
+        "Optional adapter bearer",
+        "Set adapter.api_key (or CZ_API_KEY) for defense in depth on loopback.",
+    ),
 )
