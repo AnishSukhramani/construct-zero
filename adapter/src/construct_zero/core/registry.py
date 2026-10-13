@@ -93,6 +93,12 @@ def _lazy_claude(_cfg: CZConfig, _sessions: SessionStore) -> InferenceBackend:
     return ClaudeCodeDriver()
 
 
+def _lazy_openai_compat(cfg: CZConfig, sessions: SessionStore) -> InferenceBackend:
+    from construct_zero.drivers.openai_compat import OpenAICompatDriver
+
+    return OpenAICompatDriver(cfg, sessions=sessions)
+
+
 def _register_builtins() -> None:
     if _BACKENDS:
         return
@@ -135,7 +141,22 @@ def _register_builtins() -> None:
             factory=_lazy_claude,
         )
     )
-    # openai_compat and codex registered when drivers ship (see drivers/openai_compat.py)
+    register(
+        BackendSpec(
+            name="openai_compat",
+            aliases=("byo", "company", "openai-compatible"),
+            capabilities=Capabilities(
+                tools=True,
+                streaming="native",
+                vision=False,
+                usage=True,
+            ),
+            extra_name="openai_compat",
+            config_key="openai_compat",
+            factory=_lazy_openai_compat,
+        )
+    )
+    # codex: stub only — not registered
 
 
 def build(cfg: CZConfig, sessions: SessionStore, name: str | None = None) -> InferenceBackend:

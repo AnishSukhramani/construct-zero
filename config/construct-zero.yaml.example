@@ -15,6 +15,11 @@ inference:
   # Future: claude_code driver (stub only in MVP)
   claude_code:
     enabled: false
+  # BYO company LLM (Azure / vLLM / Ollama / LiteLLM) — see docs/recipes/backend-openai-compat.md
+  # openai_compat:
+  #   preset: generic
+  #   base_url: https://llm.corp.example/v1
+  #   api_key_env: CZ_OPENAI_COMPAT_API_KEY
 
 # Optional: cheaper Cursor model for Hermes auxiliary tasks
 # (set in ~/.hermes/config.yaml auxiliary.*.model after Construct-Zero works)

@@ -24,6 +24,7 @@ from construct_zero.core.registry import (
 )
 from construct_zero.core.sessions import SessionStore
 from construct_zero.core.streaming import sse_line
+from construct_zero.drivers.openai_compat import UpstreamError
 from construct_zero.home import admin as cz_admin
 from construct_zero.home import identity as cz_identity
 from construct_zero.home import inference_guard as cz_guard
@@ -64,9 +65,16 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
         detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
         code = "cz_error"
         if exc.status_code == 401:
-            code = "cz_auth_missing" if "Missing" in detail else "cz_auth_invalid"
+            if "upstream" in detail and "HTTP 401" in detail:
+                code = "cz_upstream_401"
+            else:
+                code = "cz_auth_missing" if "Missing" in detail else "cz_auth_invalid"
         elif exc.status_code == 501 and "Tools are not supported" in detail:
             code = "cz_unsupported_tools"
+        elif exc.status_code == 504:
+            code = "cz_upstream_timeout"
+        elif 400 <= exc.status_code < 600 and detail.startswith("upstream "):
+            code = f"cz_upstream_{exc.status_code}"
         return JSONResponse(
             status_code=exc.status_code,
             content={
@@ -214,6 +222,11 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
             return resp
         except HTTPException:
             raise
+        except UpstreamError as exc:
+            status = 504 if exc.status_code == 504 else min(exc.status_code, 599)
+            if status < 400:
+                status = 502
+            raise HTTPException(status_code=status, detail=str(exc)) from exc
         except Exception as exc:
             logger.exception("chat.completions failed")
             raise HTTPException(status_code=502, detail=str(exc)) from exc
