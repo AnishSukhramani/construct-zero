@@ -53,9 +53,10 @@ jobs:
           HERMES_PIN_ROOT: ${{ env.HERMES_PIN_ROOT }}
         run: |
           set -euo pipefail
-          cd adapter && uv sync --locked --extra dev
+          root="${GITHUB_WORKSPACE}"
+          cd "$root/adapter" && uv sync --locked --extra dev
           export HERMES_HOME="$RUNNER_TEMP/hermes-home"
           mkdir -p "$HERMES_HOME"
-          bash scripts/install-hermes-plugin.sh
+          bash "$root/scripts/install-hermes-plugin.sh"
           export PYTHONPATH="$HERMES_PIN_ROOT:${PYTHONPATH:-}"
-          cd adapter && uv run pytest -q ../tests/hermes_compat
+          cd "$root/adapter" && uv run pytest -q ../tests/hermes_compat
