@@ -222,6 +222,20 @@ On GitHub, confirm there is no `hermes/` folder in the repo tree.
 
 > **Using Construct Zero?** [Tell us how (2 min)](https://github.com/AnishSukhramani/construct-zero/discussions) · Stuck? [Help / Setup](https://github.com/AnishSukhramani/construct-zero/discussions/categories/help-setup) · Free & MIT. Usage bills your own Cursor plan.
 
+## Security & liability
+
+Construct-Zero is provided under the [MIT License](LICENSE) **“AS IS”, without warranty of any kind**. Maintainers are **not liable** for data loss, leaks, breaches, or compliance failures arising from how you install, configure, or run the adapter, Hermes, or third-party clients (Cline, Cursor, etc.).
+
+**You are responsible for:**
+
+- Secrets (`.env`, API keys) and file permissions on shared machines
+- What prompts and repository context you send to **Cursor cloud** or any `openai_compat` endpoint
+- Organizational policies (e.g. [Cursor Privacy Mode](https://cursor.com/privacy)) and agent ignore rules in proprietary repos
+
+Security overview: [SECURITY.md](SECURITY.md) · threat model: [SECURITY-AUDIT.md](SECURITY-AUDIT.md) · regulated/private use: [docs/features/private-regulated-codebases.md](docs/features/private-regulated-codebases.md).
+
+*This section is plain-language summary only — **not legal advice**. Have your company counsel review before production use in regulated environments.*
+
 ## License
 
 Construct-Zero adapter, voice sidecar, and plugin: MIT (this repo). [Hermes Agent](https://github.com/NousResearch/hermes-agent) is upstream under its own license (cloned locally into gitignored `hermes/`).

@@ -72,6 +72,16 @@ cz_preflight
 
 cz_load_env
 
+if [[ -x "$ROOT/adapter/.venv/bin/python" ]]; then
+  _cz_project_root="$("$ROOT/adapter/.venv/bin/python" -c 'from construct_zero.security.project_root import resolve_user_project_root; print(resolve_user_project_root())' 2>/dev/null || true)"
+  if [[ -n "$_cz_project_root" ]]; then
+    export CZ_PROJECT_ROOT="$_cz_project_root"
+    if [[ -f "$ROOT/.env" ]] && ! grep -q '^CZ_PROJECT_ROOT=' "$ROOT/.env" 2>/dev/null; then
+      cz_env_set CZ_PROJECT_ROOT "$_cz_project_root"
+    fi
+  fi
+fi
+
 # .env bootstrap
 if [[ ! -f "$ROOT/.env" && -f "$ROOT/.env.example" ]]; then
   cp "$ROOT/.env.example" "$ROOT/.env"
@@ -157,6 +167,18 @@ if [[ "$DO_HERMES" != "1" ]]; then
 fi
 
 cz_spin "Running core setup..." "$ROOT/scripts/setup.sh" ${setup_args[@]+"${setup_args[@]}"}
+
+if [[ -x "$ROOT/adapter/.venv/bin/python" ]]; then
+  "$ROOT/adapter/.venv/bin/python" - <<'PY' || true
+from construct_zero.security.agent_ignore import ensure_agent_ignore_files
+from construct_zero.security.project_root import is_nested_cz_install
+
+if is_nested_cz_install():
+    touched = ensure_agent_ignore_files()
+    if touched:
+        print("Agent ignore rules:", ", ".join(touched))
+PY
+fi
 
 if [[ "$DO_VOICE" == "1" ]]; then
   cz_spin "Setting up voice..." "$ROOT/scripts/setup-voice.sh"

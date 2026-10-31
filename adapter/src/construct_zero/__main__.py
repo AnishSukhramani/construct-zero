@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import logging
 import sys
 
 
@@ -17,12 +16,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
-    logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
-
+    from construct_zero.security.logging_config import configure_logging
     from construct_zero.server import run
+
+    configure_logging(verbose=args.verbose)
 
     run(host=args.host, port=args.port, config_path=args.config)
     return 0

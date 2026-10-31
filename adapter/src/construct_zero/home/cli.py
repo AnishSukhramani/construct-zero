@@ -10,10 +10,12 @@ from pathlib import Path
 from construct_zero.home import registry as reg_mod
 from construct_zero.home.pointers import apply_pointers, git_exclude_cz, remove_pointers
 from construct_zero.home.store import CzStore
+from construct_zero.security.agent_ignore import ensure_agent_ignore_files
+from construct_zero.security.project_root import is_nested_cz_install, resolve_user_project_root
 
 
 def _cmd_init(args: argparse.Namespace) -> int:
-    project = Path.cwd()
+    project = resolve_user_project_root()
     store = CzStore(project)
     created = store.init_scaffold()
     git_exclude_cz(project, commit_mode=args.commit)
@@ -36,6 +38,10 @@ def _cmd_init(args: argparse.Namespace) -> int:
         print("`.cz/` already initialized (no scaffold changes).")
     if touched:
         print("Pointers updated:", ", ".join(touched))
+    if is_nested_cz_install():
+        ignored = ensure_agent_ignore_files(project)
+        if ignored:
+            print("Agent ignore rules:", ", ".join(ignored))
     return 0
 
 

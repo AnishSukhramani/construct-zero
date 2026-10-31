@@ -17,6 +17,13 @@ from typing import Any
 from construct_zero import __version__
 from construct_zero.config import load_config
 from construct_zero.doctor.profiles import CheckSpec
+from construct_zero.security.project_root import (
+    agent_context_is_cz_source,
+    cz_install_root,
+    is_nested_cz_install,
+    resolve_user_project_root,
+)
+from construct_zero.security.redact import redact
 
 
 @dataclass
@@ -36,7 +43,7 @@ def _redact_path(p: str) -> str:
     home = str(Path.home())
     if p.startswith(home):
         return "~" + p[len(home) :]
-    return p
+    return redact(p)
 
 
 def run_check(spec: CheckSpec, ctx: dict[str, Any]) -> CheckResult:
@@ -44,7 +51,7 @@ def run_check(spec: CheckSpec, ctx: dict[str, Any]) -> CheckResult:
     if fn is None:
         return CheckResult(spec.id, spec.severity, "skip", "not implemented", spec.fix)
     status, detail = fn(ctx)
-    return CheckResult(spec.id, spec.severity, status, detail, spec.fix)
+    return CheckResult(spec.id, spec.severity, status, redact(detail), spec.fix)
 
 
 def _check_os(_ctx: dict[str, Any]) -> tuple[str, str]:
@@ -257,6 +264,37 @@ def _check_errors(_ctx: dict[str, Any]) -> tuple[str, str]:
     return "pass", f"{len(list(snap.glob('*.txt')))} snapshot(s)"
 
 
+def _check_project_isolation(_ctx: dict[str, Any]) -> tuple[str, str]:
+    install = cz_install_root()
+    project = resolve_user_project_root()
+    if agent_context_is_cz_source(project):
+        return (
+            "fail",
+            f"agent project root is the CZ install ({_redact_path(str(install))}); "
+            "set CZ_PROJECT_ROOT to your app repo or install CZ as .cz/ or ../construct-zero",
+        )
+    if is_nested_cz_install(install) and project == install:
+        return (
+            "warn",
+            f"nested install but project root is still {_redact_path(str(install))}; "
+            "export CZ_PROJECT_ROOT or run Hermes from the parent repo",
+        )
+    if project != install:
+        return "pass", f"project={_redact_path(str(project))} install={_redact_path(str(install))}"
+    return "pass", f"standalone install at {_redact_path(str(install))}"
+
+
+def _check_adapter_auth(ctx: dict[str, Any]) -> tuple[str, str]:
+    key = (ctx["config"].adapter.api_key or "").strip()
+    if not key or key.lower() == "unused":
+        return (
+            "warn",
+            "adapter.api_key unset — loopback open to local processes; "
+            "set a bearer key for defense in depth",
+        )
+    return "pass", "adapter bearer configured"
+
+
 def _check_secrets_hygiene(ctx: dict[str, Any]) -> tuple[str, str]:
     root = _repo_root()
     env_path = root / ".env"
@@ -290,6 +328,8 @@ CHECKS = {
     "client:cline": _check_client_cline,
     "errors": _check_errors,
     "secrets-hygiene": _check_secrets_hygiene,
+    "project-isolation": _check_project_isolation,
+    "adapter-auth": _check_adapter_auth,
 }
 
 
