@@ -23,6 +23,10 @@ jobs:
       matrix:
         package: [adapter, vpl, voice]
         python: ["3.10", "3.11", "3.12"]
+        exclude:
+          # voice: filelock>=4.2.1 (deps-audit / GHSA) requires Python>=3.11
+          - package: voice
+            python: "3.10"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
