@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import tempfile
 import threading
 import time
 from collections.abc import Iterator
@@ -136,9 +135,11 @@ class CursorDriver:
         self._call_to_run: dict[str, str] = {}
 
     def _make_workspace(self) -> str:
-        if self.cursor_cfg.workspace_isolation:
-            return tempfile.mkdtemp(prefix="construct-zero-cursor-ws-")
-        return os.getcwd()
+        if not self.cursor_cfg.workspace_isolation:
+            return os.getcwd()
+        from construct_zero.security.project_root import resolve_user_project_root
+
+        return str(resolve_user_project_root())
 
     def _api_key(self) -> str:
         return self.config.cursor_api_key()
@@ -187,7 +188,9 @@ class CursorDriver:
                 ids.insert(0, "auto")
             return ids or fallback
         except Exception as exc:
-            logger.warning("list_models failed: %s", exc)
+            from construct_zero.security.redact import redact
+
+            logger.warning("list_models failed: %s", redact(str(exc)))
             return fallback
 
     def complete(self, request: ChatCompletionRequest) -> CompletionResult:

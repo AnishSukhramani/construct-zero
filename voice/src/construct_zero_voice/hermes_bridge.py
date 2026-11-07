@@ -15,6 +15,16 @@ from construct_zero_voice.envcompat import env_cz
 logger = logging.getLogger(__name__)
 
 
+def project_root() -> Path:
+    env = (env_cz("PROJECT_ROOT") or "").strip()
+    if env:
+        return Path(env)
+    root = repo_root()
+    if root.name.lower() in {"construct-zero", ".cz"}:
+        return root.parent
+    return root
+
+
 def repo_root() -> Path:
     env = (env_cz("REPO_ROOT") or "").strip()
     if env:
@@ -146,7 +156,7 @@ def ask_hermes(
             text=True,
             timeout=timeout,
             env=env,
-            cwd=str(repo_root()),
+            cwd=str(project_root()),
             check=False,
         )
     except FileNotFoundError as exc:
@@ -159,8 +169,9 @@ def ask_hermes(
 
     out = (proc.stdout or "") + ("\n" + proc.stderr if proc.stderr else "")
     if proc.returncode != 0:
-        logger.error("Hermes exit %s: %s", proc.returncode, out[-2000:])
-        raise RuntimeError(f"Hermes failed (exit {proc.returncode}): {out[-500:]}")
+        safe = out[-500:] if len(out) > 500 else out
+        logger.error("Hermes exit %s (output truncated)", proc.returncode)
+        raise RuntimeError(f"Hermes failed (exit {proc.returncode}): {safe}")
 
     reply = parse_hermes_reply(proc.stdout or "")
     if not reply:

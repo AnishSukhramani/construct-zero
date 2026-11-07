@@ -2,7 +2,7 @@
 name = "construct-zero-voice"
 version = "0.1.0"
 description = "Construct-Zero hold-to-talk voice sidecar — faster-whisper STT + Kokoro TTS + Hermes bridge"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.11,<3.14"
 dependencies = [
   "fastapi>=0.115.0",
   "uvicorn[standard]>=0.32.0",
@@ -32,6 +32,9 @@ packages = ["src/construct_zero_voice"]
 
 [tool.uv.sources]
 construct-zero-vpl = { path = "../vpl", editable = true }
+
+[tool.uv]
+override-dependencies = ["filelock>=4.2.1"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

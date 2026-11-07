@@ -45,6 +45,8 @@ from construct_zero.openai_types import (
     ModelCard,
     ModelsListResponse,
 )
+from construct_zero.security.middleware import LoopbackHostMiddleware
+from construct_zero.security.redact import redact
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +57,7 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
     backend = build_backend(config, sessions)
 
     app = FastAPI(title="Construct-Zero Adapter", version=__version__)
+    app.add_middleware(LoopbackHostMiddleware)
     app.state.config = config
     app.state.backend = backend
     app.state.sessions = sessions
@@ -67,6 +70,7 @@ def create_app(config: CZConfig | None = None) -> FastAPI:
     @app.exception_handler(HTTPException)
     async def openai_http_exception(_request: Request, exc: HTTPException) -> JSONResponse:
         detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+        detail = redact(detail)
         code = "cz_error"
         if exc.status_code == 401:
             if "upstream" in detail and "HTTP 401" in detail:
@@ -365,7 +369,7 @@ def _stream_response(
         yield sse_line("[DONE]")
     except Exception as exc:
         logger.exception("stream failed")
-        yield sse_line({"error": {"message": str(exc), "type": "cz_error"}})
+        yield sse_line({"error": {"message": redact(str(exc)), "type": "cz_error"}})
         yield sse_line("[DONE]")
 
 

@@ -18,6 +18,7 @@ Status key: **MVP** = shipped in repo | **Stub** = placeholder only | **Out of s
 | Claude Code driver | Stub | [adapter/src/construct_zero/drivers/claude_code.py](../../adapter/src/construct_zero/drivers/claude_code.py) | [adapter-inference.md](adapter-inference.md) |
 | Agent home (shared `.cz/` context) | Preview | [adapter/src/construct_zero/home/](../../adapter/src/construct_zero/home/) | [agent-home.md](agent-home.md) |
 | Cline wallet recipe + `doctor --client=cline` | MVP | [docs/recipes/cline.md](../recipes/cline.md), [scripts/doctor.sh](../../scripts/doctor.sh) | [cline.md](../recipes/cline.md) |
+| Security hardening (loopback, redaction, project isolation) | MVP | [adapter/src/construct_zero/security/](../../adapter/src/construct_zero/security/) | [private-regulated-codebases.md](private-regulated-codebases.md), [SECURITY.md](../../SECURITY.md) |
 
 ## Out of scope (unless user explicitly requests)
 

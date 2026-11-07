@@ -44,7 +44,7 @@ cz_runtime_cli() {
 }
 
 cz_chat() {
-  local hermes has_provider has_model arg extra
+  local hermes has_provider has_model arg extra project_root
   hermes="${HERMES_BIN:-$ROOT/.venvs/hermes/bin/hermes}"
   if [[ ! -x "$hermes" ]]; then
     echo "Hermes CLI not found at $hermes" >&2
@@ -65,7 +65,12 @@ cz_chat() {
   [[ "$has_provider" == "0" ]] && extra+=(--provider construct-zero)
   [[ "$has_model" == "0" ]] && extra+=(--model auto)
 
-  exec "$hermes" chat "$@" ${extra[@]+"${extra[@]}"}
+  project_root="$(cz_resolve_project_root || pwd)"
+  export CZ_PROJECT_ROOT="$project_root"
+  (
+    cd "$project_root" || exit 1
+    exec env CZ_PROJECT_ROOT="$project_root" "$hermes" chat "$@" ${extra[@]+"${extra[@]}"}
+  )
 }
 
 cmd="${1:-help}"

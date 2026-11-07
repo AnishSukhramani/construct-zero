@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from construct_zero.home.paths import cz_state_dir
+from construct_zero.security.permissions import ensure_secure_dir
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS usage(
@@ -40,7 +41,7 @@ def usage_db_path() -> Path:
 
 def init_db(path: Path | None = None) -> None:
     db = path or usage_db_path()
-    db.parent.mkdir(parents=True, exist_ok=True)
+    ensure_secure_dir(db.parent)
     conn = sqlite3.connect(db)
     try:
         conn.execute("PRAGMA journal_mode=WAL")

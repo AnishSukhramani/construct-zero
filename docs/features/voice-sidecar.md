@@ -2,6 +2,8 @@
 
 Browser push-to-talk on `127.0.0.1:8767`. Local STT + TTS; Hermes for reasoning via Construct-Zero.
 
+**Python:** voice package requires **3.11+** (torch/filelock security pins); adapter and vpl still support 3.10.
+
 ## Endpoints
 
 | Method | Path | Purpose |

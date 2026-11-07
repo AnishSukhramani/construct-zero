@@ -10,6 +10,7 @@ STEP="${1:-ci}"
 
 run_tests() {
   "$ROOT/scripts/run-tests.sh" --fast
+  python3 "$ROOT/scripts/ci/telemetry_check.py"
 }
 
 run_guardrails() {

@@ -5,6 +5,22 @@
 # shellcheck disable=SC2034
 CZ_LIB_COMMON_LOADED=1
 
+# Resolve the user's project workspace (not the CZ install tree when nested).
+cz_resolve_project_root() {
+  local root py resolved
+  root="$(cz_root)"
+  py="$root/adapter/.venv/bin/python"
+  if [[ ! -x "$py" ]]; then
+    py=python3
+  fi
+  resolved="$("$py" -c 'from construct_zero.security.project_root import resolve_user_project_root; print(resolve_user_project_root())' 2>/dev/null || true)"
+  if [[ -n "$resolved" ]]; then
+    printf '%s\n' "$resolved"
+  else
+    pwd
+  fi
+}
+
 cz_root() {
   if [[ -n "${CZ_ROOT:-${HCX_ROOT:-}}" ]]; then
     printf '%s\n' "${CZ_ROOT:-$HCX_ROOT}"
